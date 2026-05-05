@@ -41,7 +41,7 @@
     border: tall $primary;
 }
 
-#passphrase-modal-button {
+#passphrase-modal-buttons {
     layout: horizontal;
     height: auto;
     align: right middle;
