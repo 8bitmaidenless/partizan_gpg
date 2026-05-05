@@ -195,7 +195,7 @@ WELCOME_TEXT = """\
 [b]K[/b]    →   Key Management    [i](generate, import, export, delete keys)[/i]
 [b]E[/b]    →   Encrypt / Decrypt [i](encrypt, decrypt, sign, verify)[/i]
 [b]S[/b]    →   Settings          [i](keyring path, GPG binary, key defaults)[/i]
-[b]Q[/b]    →   Quit
+[b]Esc[/b]    →   Quit
 
 The keyring path is shown in the header subtitle.
 [i]Use [b]`--gnupghome`[/b] on the command line to point at a different keyring.[/i]

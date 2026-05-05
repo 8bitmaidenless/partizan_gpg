@@ -7,6 +7,7 @@
 #passphrase-modal-inner {
     width: 52;
     height: auto;
+    max-height: 90%;
     background: $surface;
     border: tall $primary;
     padding: 1 2;
