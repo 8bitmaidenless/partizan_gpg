@@ -84,8 +84,7 @@ if __name__ == "__main__":
             Binding("p", "open_modal", "Open modal"),
             Binding("q", "quit", "Quit"),
         ]
-        # CSS_PATH = str(Path(__file__).parent.parent / "css" / "passphrase_modal.tcss")
-        CSS_PATH = "/Users/glizzok/Desktop/partizan_gpg/src/partizan_gpg/tui/css/passphrase_modal.tcss"
+        CSS_PATH = str(Path(__file__).parent.parent / "css" / "passphrase_modal.tcss")
 
         def compose(self) -> ComposeResult:
             yield Header()

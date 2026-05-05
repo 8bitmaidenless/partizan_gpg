@@ -61,7 +61,7 @@ class KeyDetailWidget(ScrollableContainer):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._current_info: KeyInfo | None = None
-        self._gpg: None
+        self._gpg = None
 
     def compose(self) -> ComposeResult:
         # yield Static(_PLACEHOLDER, id="kd-placeholder")

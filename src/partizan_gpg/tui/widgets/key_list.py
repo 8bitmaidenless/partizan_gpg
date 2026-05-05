@@ -378,7 +378,8 @@ def _format_expiry(expires: str) -> str:
     try:
         import datetime
         ts = int(expires)
-        return datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d")
+        # return datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d")
+        return datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
         # return datetime.datetime.fromtimstamp(ts, datetime.timezone.utc).strftime("%Y-%m-%d")
     except (ValueError, OSError):
         return expires
@@ -409,7 +410,7 @@ def _trust_style(trust_label: str) -> str:
         "expired": "bold red",
         "revoked": "bold red",
         "unknown": "dim",
-        "undefined": "dim,"
+        "undefined": "dim",
     }.get(trust_label, "")
 
 

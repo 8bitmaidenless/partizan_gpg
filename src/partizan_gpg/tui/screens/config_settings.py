@@ -235,7 +235,7 @@ class ConfigScreen(Screen):
                 if os.access(p, os.X_OK):
                     status.update(f"  ✔ {p.resolve()}")
                     status.remove_class('cfg-status-err')
-                    status.add_calss("cfg-status-ok")
+                    status.add_class("cfg-status-ok")
                     return
             status.update(f"  ✗ '{raw}' not found on PATH")
             status.remove_class("cfg-status-ok")

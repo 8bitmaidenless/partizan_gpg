@@ -130,8 +130,10 @@ class KeyManagementScreen(Screen):
 
     def action_generate_key(self) -> None:
         """Open the GenerateKeyModal, then run `generate_key()` in a worker."""
+        from partizan_gpg.tui.settings import load_settings
+        cfg = load_settings()
         self.app.push_screen(
-            GenerateKeyModal(),
+            GenerateKeyModal(app_settings=cfg),
             callback=self._on_generate_modal_result
         )
     

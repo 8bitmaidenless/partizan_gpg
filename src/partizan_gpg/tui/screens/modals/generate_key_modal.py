@@ -8,6 +8,8 @@ from textual.containers import Container, Vertical, Horizontal
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
 
+from partizan_gpg.tui.settings import AppSettings
+
 
 @dataclass
 class GenerateKeyResult:
@@ -49,6 +51,12 @@ class GenerateKeyModal(ModalScreen[GenerateKeyResult]):
         ("5 years", "5y"),
     ]
 
+    def __init__(self, app_settings: AppSettings, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._default_algo = app_settings.algorithm 
+        self._default_expiry = app_settings.expire
+
+
     def compose(self) -> ComposeResult:
         with Container(id="gkm-outer"):
             with Vertical(id="gkm-inner"):
@@ -70,7 +78,7 @@ class GenerateKeyModal(ModalScreen[GenerateKeyResult]):
                 yield Label("Algorithm", classes="gkm-label")
                 yield Select(
                     self._ALGO_OPTIONS,
-                    value="rsa",
+                    value=self._default_algo,
                     id="gkm-algo",
                     allow_blank=False
                 )
@@ -78,7 +86,7 @@ class GenerateKeyModal(ModalScreen[GenerateKeyResult]):
                 yield Label("Expiry", classes="gkm-label")
                 yield Select(
                     self._EXPIRE_OPTIONS,
-                    value="2y",
+                    value=self._default_expiry,
                     id="gkm-expire",
                     allow_blank=False
                 )
