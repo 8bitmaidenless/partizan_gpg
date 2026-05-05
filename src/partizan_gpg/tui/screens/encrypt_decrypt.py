@@ -290,22 +290,56 @@ class EncryptDecryptScreen(Screen):
         return bool(self.query_one("#ed-opt-armor", Checkbox).value)
     
     def _write_output(self, data: str | bytes | None) -> None:
+        armor = self._armor_requested()
         out = self._output
         out.clear()
         if data is None:
             return
-        if isinstance(data, bytes):
-            try:
-                text = data.decode("utf-8")
-            except UnicodeDecodeError:
-                text = (
-                    f"<binary output - {len(data)} bytes>\n"
-                    "(Use file-path mode and check the output file)"
-                )
+        if armor:
+            if isinstance(data, bytes):
+                try:
+                    text = data.decode("utf-8")
+                except UnicodeDecodeError:
+                    text = (
+                        f"<binary output - {len(data)} bytes>\n"
+                        "(Use file-path mode and check the output file)"
+                    )
+            else:
+                text = data
+            out.load_text(text)
         else:
-            text = data
-        out.load_text(text)
-
+            path_str = self.query_one("#ed-input-file", Input).value.strip()
+            if not path_str:
+                p = Path.cwd() / "output.txt"
+                path_str = str(p)
+            path = Path(path_str)
+            if isinstance(data, str):
+                try:
+                    bit = data.encode("utf-8")
+                    suf = ".gpg"
+                    method = "write_bytes"
+                except UnicodeEncodeError:
+                    path = path.with_suffix(".asc")
+                    bit = data
+                    method = "write_text"
+                    text = (
+                        f"<output - {len(data)} chars>\n"
+                        "(Use armor output mode to check output, cannot encode)"
+                    )
+                    out.load_text(text)
+            else:
+                suf = ".gpg"
+                method = "write_bytes"
+                bit = data
+                # path.write_bytes(data)
+            path = path.with_suffix(suf)
+            write_method = getattr(path, method, path.write_bytes)
+            write_method(bit)
+            
+            self._log.log(
+                f"Output written to -> '{path}'"
+            )
+        
     def _run_encrypt_recipients(self) -> None:
         plaintext = self._get_input_bytes()
         if plaintext is None:
