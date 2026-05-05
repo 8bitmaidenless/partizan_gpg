@@ -184,6 +184,7 @@ files = [
 
 [package.dependencies]
 frozenlist = ">=1.1.0"
+typing-extensions = {version = ">=4.2", markers = "python_version < \"3.13\""}
 
 [[package]]
 name = "asttokens"
@@ -1525,5 +1526,5 @@ propcache = ">=0.2.1"
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.13"
-content-hash = "edf4ecb2b1dbae7dc7712cf0072d4b7e00577d0ad7c687d8f97ed62c19610696"
+python-versions = "^3.12"
+content-hash = "a8fc6c83b95e00524bcf533fa1491e92610c2c6eef41be9f2ef946b0cfaeb06c"

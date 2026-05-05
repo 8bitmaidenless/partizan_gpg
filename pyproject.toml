@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.12"
 textual = "^8.2.5"
 python-gnupg = "^0.5.6"
 pyperclip = "^1.11.0"
