@@ -4,7 +4,7 @@ from textual_serve.server import Server
 
 port = int(os.environ.get("PORT", 8000))
 server = Server(
-    "partizan-gpg",
+    "python partizan_gpg.tui.app",
     port=port,
     host="0.0.0.0"
 )
