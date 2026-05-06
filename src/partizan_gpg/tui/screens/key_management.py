@@ -115,18 +115,47 @@ class KeyManagementScreen(Screen):
         event: KeyDetailWidget.ExportCompleted
     ) -> None:
         """Quick-export from the detail panel - log the result."""
-        log = self._log
-        if event.ok:
-            log.log_result(
-                ok=True,
-                label="quick-export",
-                detail=f"→ {event.path}"
+        kind = "secret key export" if event.secret else "quick-export"
+        self._log.log_result(
+            ok=event.ok,
+            label=kind,
+            detail=f"-> {event.path}" if event.ok and event.path else None
+        )
+
+    def on_key_detail_widget_secret_export_requested(
+        self,
+        event: KeyDetailWidget.SecretExportRequested
+    ) -> None:
+        self._pending_secret_export_fp = event.fingerprint
+        self._log.log_separator(f"Export secret key: {event.name} <{event.key_id}>")
+        self._log.log(
+            "▲ Exporting a secret key. Keep the output file secure.",
+            level="WARN"
+        )
+        self.app.push_screen(
+            PassphraseModal(
+                title=f"Passphrase for secret key: {event.name} <{event.key_id}>"
+            ),
+            callback=self._on_secret_export_pass
+        )
+
+    def _on_secret_export_pass(self, result: PassphraseResult) -> None:
+        fp = self._pending_secret_export_fp
+        self._pending_secret_export_fp = None
+
+        if result.cancelled:
+            self._log.log("Secret key export cancelled.", level="INFO")
+            return
+        if result.was_empty:
+            self._log.log(
+                "Empty passphrase - exporting unprotected secret key.",
+                level="WARN"
             )
-        else:
-            log.log_result(
-                ok=False,
-                label="quick-export failed"
-            )
+
+        self._key_detail.do_export_secret(
+            fingerprint=fp,
+            passphrase=result.passphrase
+        )
 
     def action_generate_key(self) -> None:
         """Open the GenerateKeyModal, then run `generate_key()` in a worker."""

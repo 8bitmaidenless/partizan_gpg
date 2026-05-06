@@ -41,6 +41,21 @@ def _decode_usage(usage_str: str) -> str:
     return ", ".join(dict.fromkeys(parts))
 
 
+def _copy_to_clipboard(text: str) -> tuple[bool, str]:
+    try:
+        import pyperclip
+        pyperclip.copy(text)
+        return True, ""
+    except ImportError:
+        return False, (
+            "pyperclip is not installed.\n"
+            "Run: `pip install pyperclip`\n"
+            "to enable clipboard support."
+        )
+    except Exception as exc:
+        return False, str(exc)
+
+
 class KeyDetailWidget(ScrollableContainer):
     """
     Scrollable panel displaying full details for a single GPG key.
@@ -48,14 +63,24 @@ class KeyDetailWidget(ScrollableContainer):
     """
     class ExportCompleted(Message):
         """Posted after a quick-export attempt (success or failure)."""
-        def __init__(self, path: Path | None, ok: bool) -> None:
+        def __init__(self, path: Path | None, ok: bool, secret: bool = False) -> None:
             super().__init__()
             self.path = path
             self.ok = ok
+            self.secret = secret
+
+    class SecretExportRequested(Message):
+        def __init__(self, fingerprint: str, key_id: str, name: str) -> None:
+            super().__init__()
+            self.fingerprint = fingerprint
+            self.key_id = key_id
+            self.name = name
 
     BINDINGS = [
         Binding("c", "copy_fingerprint", "Copy FP", show=True),
-        Binding("x", "export_key", "Export .asc", show=True),
+        Binding("p", "copy_public_key", "Copy pub key", show=True),
+        Binding("x", "export_public", "Export pub .asc", show=True),
+        Binding("X", "export_secret", "Export sec .asc", show=True),
     ]
 
     def __init__(self, **kwargs) -> None:
@@ -94,6 +119,39 @@ class KeyDetailWidget(ScrollableContainer):
         self._current_info = None
         # self._replace_content([Static(_PLACEHOLDER, id="kd-placeholder")])
         self._replace_content([Static(_PLACEHOLDER, classes="kd-placeholder")])
+
+    def do_export_secret(self, fingerprint: str, passphrase: str | None) -> None:
+        if self._gpg is None:
+            return
+        info = self._current_info
+        if info is None or info.fingerprint != fingerprint:
+            return
+        
+        filename = f"{info.key_id}_secret.asc"
+        dest = Path.cwd() / filename
+
+        try:
+            armored = self._gpg.export_keys(
+                fingerprint,
+                secret=True,
+                armor=True,
+                passphrase=passphrase
+            )
+            if not armored:
+                self.post_message(self.ExportCompleted(path=None, ok=False, secret=True))
+                self.notify(
+                    "Secret key export failed - wrong passphrase, or no secret key.",
+                    severity="error",
+                    title="Export failed"
+                )
+                return
+            dest.write_text(armored, encoding="utf-8")
+            self.post_message(self.ExportCompleted(path=dest, ok=True, secret=True))
+            self.notify(f"Secret key exported → {dest.name}", title="Export complete")
+        except OSError as exc:
+            self.post_message(self.ExportCompleted(path=None, ok=False, secret=True))
+            self.notify(str(exc), title="Export failed", severity="error")
+
         
     def action_copy_fingerprint(self) -> None:
         """
@@ -107,22 +165,41 @@ class KeyDetailWidget(ScrollableContainer):
         if self._current_info is None:
             return
         fp = self._current_info.fingerprint
+        ok, err = _copy_to_clipboard(fp)
+        if ok:
+            self.notify("Fingerprint copied to clipboard.", title="Copied")
+        else:
+            self.notify(err, title="Clipboard unavailable", severity="warning")
+
+    def action_copy_public_key(self) -> None:
+        if self._current_info is None or self._gpg is None:
+            return
+        
+        info = self._current_info
         try:
-            import pyperclip
-            pyperclip.copy(fp)
-            self.notify(f"Fingerprint copied to clipboard.", title="Copied")
-        except ImportError:
+            armored = self._gpg.export_keys(info.fingerprint, armor=True)
+        except Exception as exc:
+            self.notify(str(exc), title="Export error", severity="error")
+            return
+        
+        if not armored:
             self.notify(
-                "pyperclip is not installed.\n"
-                "pip install pyperclip  to enable clipboard support.\n"
-                f"FP: {fp}",
-                title="Clipboard unavailable",
+                "No key data returned - key may have been deleted.",
+                title="Export error",
                 severity="warning"
             )
-        except Exception as exc:
-            self.notify(str(exc), title="Clipboard error", severity="warning")
+            return
+        
+        ok, err = _copy_to_clipboard(armored)
+        if ok:
+            self.notify(
+                f"Public key for {info.name} copied to clipboard.",
+                title="Copied"
+            )
+        else:
+            self.notify(err, title="Clipboard unavailable", severity="warning")
 
-    def action_export_key(self) -> None:
+    def action_export_public(self) -> None:
         """
         Quick-export the displayed public key as an ASCII-armored .asc file
         to the current working directory.
@@ -135,8 +212,7 @@ class KeyDetailWidget(ScrollableContainer):
             return
         
         info = self._current_info
-        filename = f"{info.key_id}.asc"
-        dest = Path.cwd() / filename
+        dest = Path.cwd() / f"{info.key_id}.asc"
 
         try:
             armored = self._gpg.export_keys(info.fingerprint, armor=True)
@@ -150,6 +226,28 @@ class KeyDetailWidget(ScrollableContainer):
         except OSError as exc:
             self.post_message(self.ExportCompleted(path=None, ok=False))
             self.notify(str(exc), title="Export failed", severity="error")
+
+    def action_export_secret(self) -> None:
+        if self._current_info is None:
+            return
+        
+        info = self._current_info
+
+        if not info.has_secret:
+            self.notify(
+                f"No secret key in keyring for {info.name} ({info.key_id}).",
+                title="No secret key",
+                severity="warning"
+            )
+            return
+        
+        self.post_message(
+            self.SecretExportRequested(
+                fingerprint=info.fingerprint,
+                key_id=info.key_id,
+                name=info.name
+            )
+        )
 
     def _rebuild(self, info: KeyInfo, subkeys: list[dict]) -> None:
         """Rebuild the full detail content for a given KeyInfo."""
@@ -195,8 +293,8 @@ class KeyDetailWidget(ScrollableContainer):
             nodes.append(Static("  (no subkeys)", classes="kd-empty"))
 
         nodes.append(Static(
-            "\n  [b]C[/b] - copy fingerprint    [b]X[/b] - export public key (.asc)",
-            # id="kd-hint",
+            "\n  [b]c[/b] - copy fingerprint    [b]x[/b] - export public key (.asc)"
+            "\n  [b]p[/b] - copy public key     [b]Shift+x[/b] - export secret key (.asc)",
             classes="kd-hint",
             markup=True
         ))
