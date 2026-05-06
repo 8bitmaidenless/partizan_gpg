@@ -8,4 +8,6 @@ server = Server(
     port=port,
     host="0.0.0.0"
 )
-server.serve()
+
+def main():
+    server.serve()
