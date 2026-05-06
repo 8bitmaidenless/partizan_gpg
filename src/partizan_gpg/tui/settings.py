@@ -37,6 +37,7 @@ _DEFAULT_GNUPGHOME: str = ""
 _DEFAULT_GPG_BINARY: str = "gpg"
 _DEFAULT_ALGORITHM: str = "rsa"
 _DEFAULT_EXPIRE: str = "2y"
+_DEFAULT_KEYSERVER_URL: str = "https://keys.openpgp.org"
 
 
 @dataclass
@@ -45,6 +46,7 @@ class AppSettings:
     gpg_binary: str = field(default=_DEFAULT_GPG_BINARY)
     algorithm: str = field(default=_DEFAULT_ALGORITHM)
     expire: str = field(default=_DEFAULT_EXPIRE)
+    keyserver_url: str = field(default=_DEFAULT_KEYSERVER_URL)
 
     def gnupghome_path(self) -> Path | None:
         """
@@ -58,6 +60,10 @@ class AppSettings:
     def gpg_binary_resolved(self) -> str:
         """Return the binary string, falling back to `gpg`."""
         return self.gpg_binary.strip() or _DEFAULT_GPG_BINARY
+    
+    def keyserver_url_resolved(self) -> str:
+        url = self.keyserver_url.strip()
+        return url if url else _DEFAULT_KEYSERVER_URL
     
     def build_gpg(self):
         from partizan_gpg.cipherlib import build_gpg as _build_gpg
@@ -95,6 +101,12 @@ class AppSettings:
             return True, str(p.resolve())
         return False, f"'{binary}' not found on PATH"
     
+    def validate_keyserver_url(self) -> tuple[bool, str]:
+        url = self.keyserver_url_resolved()
+        if url.startswith("https://") or url.startswith("http://"):
+            return True, url
+        return False, f"URL must start with 'https://' or 'http://'  (got: '{url}')"
+    
 
 def load_settings() -> AppSettings:
     """
@@ -117,6 +129,7 @@ def load_settings() -> AppSettings:
         gpg_binary=raw.get("gpg_binary", _DEFAULT_GPG_BINARY),
         algorithm=raw.get("algorithm", _DEFAULT_ALGORITHM),
         expire=raw.get("expire", _DEFAULT_EXPIRE),
+        keyserver_url=raw.get("keyserver_url", _DEFAULT_KEYSERVER_URL),
     )
 
 
