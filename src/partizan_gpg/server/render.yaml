@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: partizan-gpg
+    env: python
+    plan: free
+    buildCommand: poetry install 
+    startCommand: serve-render
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.13
+    healthCheckPath: /health
+    autoDeploy: true

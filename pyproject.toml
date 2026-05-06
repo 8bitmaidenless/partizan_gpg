@@ -24,3 +24,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 partizan-gpg = "partizan_gpg.tui.app:main"
+serve-render = "partizan_gpg.server.render_server:main"
