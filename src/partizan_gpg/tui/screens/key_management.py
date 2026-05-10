@@ -42,12 +42,30 @@ class KeyManagementScreen(Screen):
     """
     TITLE = "Key Management"
 
-    CSS_PATH = [
-        str(_CSS_DIR / "key_list.tcss"),
-        str(_CSS_DIR / "key_detail.tcss"),
-        str(_CSS_DIR / "keyserver_modal.tcss"),
-        str(_CSS_DIR / "key_management.tcss"),
-    ]
+    # CSS_PATH = [
+    #     str(_CSS_DIR / "key_list.tcss"),
+    #     str(_CSS_DIR / "key_detail.tcss"),
+    #     str(_CSS_DIR / "keyserver_modal.tcss"),
+    #     str(_CSS_DIR / "key_management.tcss"),
+    # ]
+    DEFAULT_CSS = """
+    #km-body {
+        height: 1fr;
+        width: 100%;
+    }
+    #km-top {
+        height: 1fr;
+        width: 100%;
+    }
+    #km-key-list {
+        width: 40%;
+    }
+    #km-op-log {
+        height: 10;
+        border-top: tall $primary-darken-2;
+        background: $background;
+    }
+    """
 
     BINDINGS = [
         Binding("g", "generate_key", "Generate", show=True),

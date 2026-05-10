@@ -54,10 +54,159 @@ _CSS_DIR = Path(__file__).parent.parent / "css"
 class EncryptDecryptScreen(Screen):
     TITLE = "Encrypt / Decrypt"
 
-    CSS_PATH = [
-        str(_CSS_DIR / "key_list.tcss"),
-        str(_CSS_DIR / "encrypt_decrypt.tcss"),
-    ]
+    # CSS_PATH = [
+    #     str(_CSS_DIR / "key_list.tcss"),
+    #     str(_CSS_DIR / "encrypt_decrypt.tcss"),
+    # ]
+    DEFAULT_CSS = """
+    KeyListWidget {
+        height: 1fr;
+        border: tall $primary-darken-1;
+        scrollbar-color: $primary;
+        scrollbar-color-hover: $primary-lighten-1;
+    }
+    KeyListWidget:focus {
+        border: tall $primary;
+    }
+    KeyListWidget > .datatable--header {
+        background: $primary-darken-2;
+        color: $text-muted;
+        text-style: bold;
+    }
+    KeyListWidget > .datatable--cursor {
+        background: $primary;
+        color: $background;
+        text-style: bold;
+    }
+    KeyListWidget > .datatable--even-row {
+        background: $surface;
+    }
+    KeyListWidget > .datatable--odd-row {
+        background: $background;
+    }
+    
+    #ed-main {
+        height: 1fr;
+        width: 100%;
+    }
+    #ed-left {
+        width: 60%;
+        height: 100%;
+        padding: 0 1 0 0;
+        border-right: tall $primary-darken-2;
+    }
+    #ed-right {
+        width: 40%;
+        height: 100%;
+        padding: 0 0 0 1;
+    }
+    .ed-section-label {
+        color: $primary;
+        text-style: bold;
+        margin-top: 1;
+        margin-bottom: 0;
+        padding-left: 1;
+    }
+    #ed-mode-set {
+        height: auto;
+        border: none;
+        padding: 0;
+        margin-bottom: 0;
+        background: transparent;
+    }
+    #ed-mode-set RadioButton {
+        padding: 0 1;
+        height: 1;
+        background: transparent;
+    }
+    #ed-mode-set RadioButton:hover {
+        background: $primary-darken-2;
+    }
+    #ed-mode-set RadioButton.-selected {
+        color: $primary;
+        text-style: bold;
+    }
+    #ed-input-toggle {
+        height: auto;
+        padding: 0 1;
+        margin-bottom: 0;
+    }
+    #ed-input-toggle Button {
+        min-width: 12;
+        height: 1;
+        margin-right: 1;
+        border: none;
+    }
+    #ed-input-text {
+        height: 8;
+        margin: 0 1;
+        border: tall $primary-darken-1;
+        background: $surface;
+    }
+    #ed-input-text:focus {
+        border: tall $primary;
+    }
+    #ed-input-file {
+        margin: 0 1;
+        border: tall $primary-darken-1;
+    }
+    #ed-input-file:focus {
+        border: tall $primary;
+    }
+    #ed-sig-text {
+        height: 6;
+        margin: 0 1;
+        border: tall $primary-darken-1;
+        background: $surface;
+    }
+    #ed-sig-text:focus {
+        border: tall $primary;
+    }
+    #ed-options {
+        height: auto;
+        padding: 0 1;
+        margin-top: 1;
+    }
+    #ed-options Checkbox {
+        margin-right: 2;
+        background: transparent;
+    }
+    #ed-sign-hint {
+        color: $text-muted;
+        text-style: italic;
+        padding-left: 1;
+        margin-bottom: 0;
+    }
+    #ed-run-btn {
+        margin: 1 1 0 1;
+        width: 1fr;
+    }
+    #ed-output {
+        height: 1fr;
+        margin: 0 1 0 1;
+        border: tall $primary-darken-2;
+        background: $background;
+        color: $text-muted;
+    }
+    #ed-output:focus {
+        border: tall $primary-darken-1;
+        color: $text;
+    }
+    #ed-key-list {
+        height: 1fr;
+    }
+    #ed-selection-status {
+        height: auto;
+        color: yellow;
+        padding: 0 1;
+        margin-top: 0;
+    }
+    #ed-op-log {
+        height: 8;
+        border-top: tall $primary-darken-2;
+        background: $background;
+    }
+    """
     BINDINGS = [
         Binding("1", "set_mode('0')", "Encrypt→recip.", show=False),
         Binding("2", "set_mode('1')", "Sym. encrypt",   show=False),

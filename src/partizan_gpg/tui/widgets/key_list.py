@@ -112,6 +112,38 @@ class KeyListWidget(DataTable):
         Binding("r", "refresh_table", "Refresh", show=True),
     ]
 
+    DEFAULT_CSS = """
+    KeyListWidget {
+        height: 1fr;
+        border: tall $primary-darken-1;
+        scrollbar-color: $primary;
+        scrollbar-color-hover: $primary-lighten-1;
+    }
+    KeyListWidget:focus {
+        border: tall $primary;
+    }
+    KeyListWidget > .datatable--header {
+        background: $primary-darken-2;
+        color: $text-muted;
+        text-style: bold;
+    }
+    KeyListWidget > .datatable--cursor {
+        background: $primary-darken-1;
+        color: $text;
+    }
+    KeyListWidget:focus > .datatable--cursor {
+        background: $primary;
+        color: $background;
+        text-style: bold;
+    }
+    KeyListWidget > .datatable--even-row {
+        background: $surface;
+    }
+    KeyListWidget > .datatable--odd-row {
+        background: $background;
+    }
+    """
+
     def __init__(
         self,
         gpg=None,

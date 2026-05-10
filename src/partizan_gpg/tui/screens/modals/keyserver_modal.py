@@ -184,6 +184,112 @@ class KeyserverModal(ModalScreen[KeyserverResult]):
 
     BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
 
+    DEFAULT_CSS = """
+    #ksm-outer {
+        align: center middle;
+        width: 100%;
+        height: 100%;
+    }
+    #ksm-inner {
+        width: 62;
+        height: auto;
+        max-height: 92%;
+        background: $surface;
+        border: tall $primary;
+        padding: 1 2;
+    }
+    #ksm-title {
+        text-style: bold;
+        color: $text;
+        margin-bottom: 0;
+    }
+    #ksm-divider {
+        color: $primary;
+        margin-bottom: 1;
+    }
+    .ksm-row {
+        height: auto;
+        margin-bottom: 1;
+    }
+    .ksm-label {
+        width: 10;
+        color: $text-muted;
+        padding-top: 0;
+    }
+    .ksm-value {
+        color: $text;
+        width: 1fr;
+    }
+    .ksm-fp {
+        text-style: bold;
+        color: $primary;
+    }
+    #ksm-mode-set {
+        height: auto;
+        border: none;
+        padding: 0;
+        margin-bottom: 1;
+        background: transparent;
+    }
+    #ksm-mode-set RadioButton {
+        padding: 0 1;
+        height: 1;
+        background: transparent;
+    }
+    .kfm-field-label {
+        color: $text-muted;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    #ksm-search-input {
+        width: 100%;
+        border: tall $primary-darken-1;
+        margin-bottom: 0;
+    }
+    #ksm-search-input:focus {
+        border: tall $primary;
+    }
+    #ksm-search-hint {
+        color: $text-muted;
+        text-style: italic;
+        height: auto;
+        margin-top: 0;
+    }
+    #ksm-upload-note {
+        color: $text-muted;
+        text-style: italic;
+        height: auto;
+        margin-top: 1;
+    }
+    .ksm-note {
+        color: $text-muted;
+        text-style: italic;
+    }
+    .ksm-status {
+        height: auto;
+        margin-top: 1;
+        color: $text-muted;
+    }
+    .ksm-status-ok {
+        color: $success;
+    }
+    .ksm-status-err {
+        color: $error;
+        text-style: bold;
+    }
+    #ksm-buttons {
+        layout: horizontal;
+        height: auto;
+        align: right middle;
+        width: 100%;
+        margin-top: 1;
+    }
+    #ksm-buttons Button {
+        margin-left: 1;
+        min-width: 14;
+    }
+    """
+
     def __init__(
         self,
         gpg,

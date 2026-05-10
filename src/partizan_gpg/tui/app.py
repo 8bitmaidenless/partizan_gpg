@@ -66,11 +66,85 @@ class GPGApp(App):
 
     TITLE = "Partizan Guard GPG"
     SUB_TITLE = "GnuPG key management & crypto operations"
+    STYLE_DIR = _CSS_DIR
 
-    CSS_PATH = [
-        str(_CSS_DIR / "passphrase_modal.tcss"),
-        str(_CSS_DIR / "app.tcss"),
-    ]
+    CSS = """
+    #passphrase-modal-outer {
+        align: center middle;
+        width: 100%;
+        height: 100%;
+    }
+    #passphrase-modal-inner {
+        width: 62;
+        height: auto;
+        max-height: 90%;
+        background: $surface;
+        border: tall $primary;
+        padding: 1 2;
+    }
+    #passphrase-modal-title {
+        text-stye: bold;
+        color: $text;
+        width: 100%;
+        margin-bottom: 0;
+        overflow: hidden;
+    }
+    #passphrase-modal-divider {
+        color: $primary;
+        margin-bottom: 1;
+    }
+    #passphrase-field-label {
+        color: $text-muted;
+        margin-bottom: 0;
+    }
+    #passphrase-input {
+        width: 100%;
+        margin-bottom: 1;
+        border: tall $primary-darken-1;
+    }
+    #passphrase-input:focus {
+        border: tall $primary;
+    }
+    #passphrase-modal-buttons {
+        layout: horizontal;
+        height: auto;
+        align: right middle;
+        width: 100%;
+    }
+    #passphrase-modal-buttons Button {
+        margin-left: 1;
+        min-width: 10;
+    }
+    
+    Screen {
+        background: $background;
+    }
+    
+    Header {
+        background: $primary;
+        color: $text;
+        height: 1;
+        dock: top;
+    }
+    
+    Footer {
+        background: $primary-darken-2;
+        color: $text-muted;
+        height: 1;
+        dock: bottom;
+    }
+    
+    #welcome-label {
+        padding: 1 4;
+        color: $text;
+        content-align: left top;
+    }
+    #placeholder-label {
+        padding: 2 4;
+        color: $text-muted;
+        content-align: left top;
+    }
+    """
 
     BINDINGS = [
         Binding("k", "switch_screen('keys')", "Keys"),
