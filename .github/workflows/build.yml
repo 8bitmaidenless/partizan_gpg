@@ -1,0 +1,51 @@
+name: Build Binaries
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: partizan-gpg-linux
+          - os: windows-latest
+            artifact: partizan-gpg-windows.exe
+          - os: macos-latest
+            artifact: partizan-gpg-macos
+          
+    runs_on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install --upgrade pip && pip install poetry && poetry install
+
+      - name: Install PyInstaller
+        run: pip install --upgrade pip && pip install pyinstaller
+
+      - name: Build binary
+        run: pyinstaller partizan_gpg.spec
+
+      - name: Build DMG (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "Partizan GPG" \
+            --window-size 600 400 \
+            --app-drop-link 450 200 \
+            "dist/Partizan GPG.dmg" \
+            "dist/Partizan GPG.app"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/
