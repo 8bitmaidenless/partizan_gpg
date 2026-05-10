@@ -23,6 +23,9 @@ def get_gpg_binary():
         return base / "bundled" / "linux" / "gpg"
     
     elif system == "Darwin":
-        return base / "bundled" / "macos" / "gpg"
+        binary = base / "bundled" / "macos" / "gpg"
+        if binary.exists():
+            return binary
+        return Path("gpg")
     
     raise RuntimeError(f"Unsupported OS: {system}")
