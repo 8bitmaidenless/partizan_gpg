@@ -14,7 +14,8 @@ from textual.widgets import (
     Input,
     Label,
     Select,
-    Static
+    Static,
+    Switch
 )
 
 from partizan_gpg.tui.settings import AppSettings, CONFIG_FILE, save_settings
@@ -33,6 +34,16 @@ _EXPIRE_OPTIONS: list[tuple[str, str]] = [
     ("2 years", "2y"),
     ("5 years", "5y"),
 ]
+
+_CACHE_WARNING = (
+    "⚠  SECURITY RISK  ⚠\n"
+    "Passphrases will be held in application memory for the entire "
+    "session and reused automatically. They are never written to disk, "
+    "but any process that can read this application's memory - such as "
+    "a debugger, crash dump, or another process running as the same "
+    "user - could potentially recover them.\n"
+    "Enable only on a trusted, single-user system."
+)
 
 
 class ConfigScreen(Screen):
@@ -161,7 +172,7 @@ class ConfigScreen(Screen):
                 with Vertical(classes="cfg-input-col"):
                     yield Input(
                         value=self._cfg.gnupghome,
-                        placeholder="leave blank to use the built-in test keyring.",
+                        placeholder="leave blank to use the built-in test keyring",
                         id="cfg-gnupghome"
                     )
                     yield Static("", id="cfg-gnupghome-status", classes="cfg-status")
@@ -208,10 +219,32 @@ class ConfigScreen(Screen):
                 with Vertical(classes="cfg-input-col"):
                     yield Input(
                         value=self._cfg.keyserver_url,
-                        placeholder="https://keys.openpgpg.org",
+                        placeholder="https://keys.openpgp.org",
                         id="cfg-keyserver"
                     )
                     yield Static("", id="cfg-keyserver-status", classes="cfg-status")
+
+            yield Static("SECURITY", classes="cfg-section-label")
+            yield Static("-" * 58, classes="cfg-divider")
+
+            with Horizontal(classes="cfg-row cfg-switch-row"):
+                yield Label("Passphrase caching", classes="cfg-label")
+                with Vertical(classes="cfg-input-col"):
+                    yield Switch(
+                        value=self._cfg.passphrase_cache_enabled,
+                        id="cfg-cache-switch"
+                    )
+                    yield Static(
+                        "Disabled by default. Read the warning below before enabling.",
+                        id="cfg-cache-switch-hint",
+                        classes="cfg-status"
+                    )
+                
+            yield Static(
+                _CACHE_WARNING,
+                id="cfg-cache-warning",
+                classes="cfg-cache-warning"
+            )
 
             yield Static("ABOUT", classes="cfg-section-label")
             yield Static("-" * 58, classes="cfg-divider")
@@ -232,6 +265,7 @@ class ConfigScreen(Screen):
         self._validate_gnupghome()
         self._validate_binary()
         self._validate_keyserver()
+        self._update_cache_warning()
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == "cfg-gnupghome":
@@ -240,6 +274,26 @@ class ConfigScreen(Screen):
             self._validate_binary()
         elif event.input.id == "cfg-keyserver":
             self._validate_keyserver()
+
+    def on_switch_changed(self, event: Switch.Changed) -> None:
+        if event.switch.id == "cfg-cache-switch":
+            self._update_cache_warning()
+    
+    def _update_cache_warning(self) -> None:
+        enabled = self.query_one("#cfg-cache-switch", Switch).value
+        warning = self.query_one("#cfg-cache-warning", Static)
+        hint = self.query_one("#cfg-cache-switch-hint", Static)
+
+        warning.display = enabled
+
+        if enabled:
+            hint.update("⚠  Enabled - passphrase cached in memory this session.")
+            hint.remove_class("cfg-status-ok")
+            hint.add_class("cfg-status-warn")
+        else:
+            hint.update("Disabled by default. Read the warning below before enabling.")
+            hint.remove_class("cfg-status-warn")
+            hint.add_class("cfg-status-ok")
 
     def _validate_gnupghome(self) -> None:
         raw = self.query_one("#cfg-gnupghome", Input).value.strip()
@@ -295,12 +349,14 @@ class ConfigScreen(Screen):
     def _ok(widget: Static, text: str) -> None:
         widget.update(text)
         widget.remove_class("cfg-status-err")
+        widget.remove_class("cfg-status-warn")
         widget.add_class("cfg-status-ok")
 
     @staticmethod
     def _err(widget: Static, text: str) -> None:
         widget.update(text)
         widget.remove_class("cfg-status-ok")
+        widget.remove_class("cfg-status-warn")
         widget.add_class("cfg-status-err")
 
     @staticmethod
@@ -309,7 +365,7 @@ class ConfigScreen(Screen):
         try:
             result = subprocess.run(
                 [binary, "--version"],
-                captuer_output=True,
+                capture_output=True,
                 timeout=2,
                 text=True
             )
@@ -333,6 +389,7 @@ class ConfigScreen(Screen):
         algorithm = str(self.query_one("#cfg-algo", Select).value)
         expire = str(self.query_one("#cfg-expire", Select).value)
         keyserver = self.query_one("#cfg-keyserver", Input).value.strip()
+        cache_on = self.query_one("#cfg-cache-switch", Switch).value
 
         if keyserver and not (
             keyserver.startswith("https://") or keyserver.startswith("http://")
@@ -350,7 +407,8 @@ class ConfigScreen(Screen):
             gpg_binary=gpg_binary,
             algorithm=algorithm,
             expire=expire,
-            keyserver_url=keyserver or "https://keys.openpgp.org"
+            keyserver_url=keyserver or "https://keys.openpgp.org",
+            passphrase_cache_enabled=cache_on
         )
 
         if not save_settings(new_cfg):
