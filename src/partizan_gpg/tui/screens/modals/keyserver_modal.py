@@ -211,7 +211,7 @@ class KeyserverModal(ModalScreen[KeyserverResult]):
                         classes="ksm-value"
                     )
 
-                with RadioSet(id="kms-mode-set"):
+                with RadioSet(id="ksm-mode-set"):
                     yield RadioButton(
                         "Search / Fetch",
                         value=(self._mode == "search"),
@@ -281,7 +281,7 @@ class KeyserverModal(ModalScreen[KeyserverResult]):
             upload_pane.display = True
             go_btn.label = "Upload"
             fp = self._prefill_fp
-            self.query_one("ksm-upload-fp", Static).update(fp)
+            self.query_one("#ksm-upload-fp", Static).update(fp)
             go_btn.focus()
         
         self._set_status("")

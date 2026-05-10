@@ -25,6 +25,8 @@ from partizan_gpg.tui.widgets.passphrase_modal import PassphraseModal, Passphras
 from partizan_gpg.tui.screens.modals.generate_key_modal import GenerateKeyModal, GenerateKeyResult
 from partizan_gpg.tui.screens.modals.import_key_modal import ImportKeyModal, ImportKeyResult
 from partizan_gpg.tui.screens.modals.trust_modal import TrustModal, TrustResult
+from partizan_gpg.tui.screens.modals.keyserver_modal import KeyserverModal, KeyserverResult
+
 
 _CSS_DIR = Path(__file__).parent.parent / "css"
 
@@ -33,16 +35,17 @@ class KeyManagementScreen(Screen):
     """
     Full key management interface.
     
-    Receives the shared GPG instance from GPGApp and passes it down to
+    Receives the shared GPG instance from GPGApp and passes it down to 
     every widget and worker that needs it. Never constructs its own GPG 
     instance.
+    
     """
-
     TITLE = "Key Management"
 
     CSS_PATH = [
         str(_CSS_DIR / "key_list.tcss"),
         str(_CSS_DIR / "key_detail.tcss"),
+        str(_CSS_DIR / "keyserver_modal.tcss"),
         str(_CSS_DIR / "key_management.tcss"),
     ]
 
@@ -52,6 +55,7 @@ class KeyManagementScreen(Screen):
         Binding("e", "export_key", "Export", show=True),
         Binding("d", "delete_key", "Delete", show=True),
         Binding("t", "set_trust", "Trust", show=True),
+        Binding("k", "keyserver", "Keyserver", show=True),
         Binding("s", "save_log", "Save log", show=True),
         Binding("r", "refresh", "Refresh", show=True),
         Binding("tab", "cycle_focus", "Switch pane", show=True),
@@ -61,61 +65,52 @@ class KeyManagementScreen(Screen):
     def __init__(self, gpg, **kwargs) -> None:
         super().__init__(**kwargs)
         self.gpg = gpg
-
         self._pending_delete_fp: str | None = None
+        self._pending_secret_export_fp: str | None = None
 
     def compose(self) -> ComposeResult:
         yield Header()
         with Vertical(id="km-body"):
             with Horizontal(id="km-top"):
-                yield KeyListWidget(
-                    gpg=self.gpg,
-                    id="km-key-list"
-                )
+                yield KeyListWidget(gpg=self.gpg, id="km-key-list")
                 yield KeyDetailWidget(id="km-key-detail")
             yield OperationLogWidget(id="km-op-log")
         yield Footer()
 
     def on_mount(self) -> None:
-        """Clear the log, load the key list, focus the list."""
         log = self._log
         log.clear()
         log.log_separator("Key Management")
-        log.log(f"Keyring: {self.gpg.gnupghome}", level="INFO")
+        log.log(f"keyring: {self.gpg.gnupghome}", level="INFO")
 
         key_list = self._key_list
         key_list.load(self.gpg)
-        key_count = key_list.row_count
-        log.log(f"{key_count} key(s) loaded from keyring.", level="INFO")
+        log.log(f"{key_list.row_count} key(s) loaded from keyring.", level="INFO")
         key_list.focus()
 
     def on_screen_resume(self) -> None:
-        """Called every time this screen becomes active after navigation."""
         self._log.clear()
         self._log.log_separator("Key Management")
         self._key_list.refresh_keys(self.gpg)
         self._key_list.focus()
-
+    
     def on_key_list_widget_cursor_moved(
         self,
         event: KeyListWidget.CursorMoved
     ) -> None:
-        """Update detail panel as cursor moves through the key list."""
         self._key_detail.show(event.key_info, self.gpg)
 
     def on_key_list_widget_key_confirmed(
         self,
         event: KeyListWidget.KeyConfirmed
     ) -> None:
-        """Enter on the key list - focus the detail panel."""
         self._key_detail.focus()
 
     def on_key_detail_widget_export_completed(
         self,
         event: KeyDetailWidget.ExportCompleted
     ) -> None:
-        """Quick-export from the detail panel - log the result."""
-        kind = "secret key export" if event.secret else "quick-export"
+        kind = "secret key export" if event.secret else "quick export"
         self._log.log_result(
             ok=event.ok,
             label=kind,
@@ -127,9 +122,11 @@ class KeyManagementScreen(Screen):
         event: KeyDetailWidget.SecretExportRequested
     ) -> None:
         self._pending_secret_export_fp = event.fingerprint
-        self._log.log_separator(f"Export secret key: {event.name} <{event.key_id}>")
+        self._log.log_separator(
+            f"Export secret key: {event.name} <{event.key_id}>"
+        )
         self._log.log(
-            "▲ Exporting a secret key. Keep the output file secure.",
+            "⏶ Exporting a secret key.  Keep the output file secure.",
             level="WARN"
         )
         self.app.push_screen(
@@ -138,7 +135,7 @@ class KeyManagementScreen(Screen):
             ),
             callback=self._on_secret_export_pass
         )
-
+    
     def _on_secret_export_pass(self, result: PassphraseResult) -> None:
         fp = self._pending_secret_export_fp
         self._pending_secret_export_fp = None
@@ -158,24 +155,23 @@ class KeyManagementScreen(Screen):
         )
 
     def action_generate_key(self) -> None:
-        """Open the GenerateKeyModal, then run `generate_key()` in a worker."""
         from partizan_gpg.tui.settings import load_settings
         cfg = load_settings()
         self.app.push_screen(
             GenerateKeyModal(app_settings=cfg),
             callback=self._on_generate_modal_result
         )
-    
+
     def _on_generate_modal_result(self, result: GenerateKeyResult) -> None:
         if result.cancelled:
-            self._log.log("Key Generation cancelled", level="INFO")
+            self._log.log("Key generation cancelled.", level="INFO")
             return
         if result.was_empty_passphrase:
             self._log.log(
                 "No passphrase provided - secret key will be unprotected.",
                 level="WARN"
             )
-        self._log.log_separator(f"Generating key for [b]{result.email}[/b]")
+        self._log.log_separator(f"Generating key for {result.email}")
         self.run_worker(
             self._worker_generate(result),
             thread=True,
@@ -183,7 +179,6 @@ class KeyManagementScreen(Screen):
         )
 
     async def _worker_generate(self, result: GenerateKeyResult) -> None:
-        """Blocking GPG call - runs in a thread worker."""
         fp = await asyncio.to_thread(
             generate_key,
             self.gpg,
@@ -194,22 +189,27 @@ class KeyManagementScreen(Screen):
             algorithm=result.algorithm,
             passphrase=result.passphrase
         )
-        self.app.call_from_thread(self._finish_generate, fp, result.email)
+        self.app.call_from_thread(
+            self._finish_generate,
+            fp,
+            result.email
+        )
 
     def _finish_generate(self, fp: str | None, email: str) -> None:
-        log = self._log
         if fp:
-            log.log_result(
+            self._log.log_result(
                 ok=True,
                 label=f"generate_key({email})",
                 detail=f"FP: {fp}"
             )
             self._key_list.refresh_keys(self.gpg)
         else:
-            log.log_result(ok=False, label=f"generate_key({email})")
+            self._log.log_result(
+                ok=False,
+                label=f"generate_key({email})"
+            )
 
     def action_import_key(self) -> None:
-        """Open the `ImportKeyModal`, then run the appropriate import in a worker."""
         self.app.push_screen(
             ImportKeyModal(),
             callback=self._on_import_modal_result
@@ -245,19 +245,20 @@ class KeyManagementScreen(Screen):
         self.app.call_from_thread(self._finish_import, fps)
 
     def _finish_import(self, fps: list[str]) -> None:
-        log = self._log
         if fps:
-            log.log_result(
+            self._log.log_result(
                 ok=True,
-                label=f"import_key - {len(fps)} key(s) imported",
+                label=f"import key - {len(fps)} key(s) imported",
                 detail="; ".join(fp[-16:] for fp in fps)
             )
             self._key_list.refresh_keys(self.gpg)
         else:
-            log.log_result(ok=False, label="import_key - no keys imported")
+            self._log.log_result(
+                ok=False,
+                label="import key - no keys imported"
+            )
 
     def action_export_key(self) -> None:
-        """Export the currently selected key's public key to cwd as <keyid>.asc."""
         info = self._cursor_key
         if info is None:
             self._log.log(
@@ -281,21 +282,20 @@ class KeyManagementScreen(Screen):
             armor=True,
             output_path=dest
         )
-        ok = bool(data)
-        self.app.call_from_thread(self._finish_export, ok, dest)
+        self.app.call_from_thread(
+            self._finish_export,
+            bool(data),
+            dest
+        )
 
     def _finish_export(self, ok: bool, dest: Path) -> None:
         self._log.log_result(
             ok=ok,
             label="export_public_key",
-            detail=f"→ {dest}" if ok else None
+            detail=f"-> {dest}" if ok else None
         )
-    
+
     def action_delete_key(self) -> None:
-        """
-        Prompt for confirmation via a notification, then delete both the
-        secret and public keys for the selected fingerprint.
-        """
         info = self._cursor_key
         if info is None:
             self._log.log("No key selected.", level="WARN")
@@ -313,40 +313,34 @@ class KeyManagementScreen(Screen):
         )
 
     def on_key(self, event) -> None:
-        """Intercept Y/N after a delete confirmation notification."""
         if self._pending_delete_fp is None:
             return
         if event.key.lower() == "y":
             event.stop()
             self._log.log_separator("Delete Key")
             self.app.push_screen(
-                PassphraseModal(title="Passphase required for secret key deletion."),
+                PassphraseModal(title="Passphrase required for secret key deletion"),
                 callback=self._on_delete_pass
             )
         else:
             self._pending_delete_fp = None
-            self._log.log("Deletion cancelled.", level="INFO")
+            self._log.log("Deletion cancelled", level="INFO")
 
     def _on_delete_pass(self, result: PassphraseResult) -> None:
         fp = self._pending_delete_fp
         self._pending_delete_fp = None
+
         if result.cancelled:
-            self._log.log(
-                "Key deletion cancelled.",
-                level="INFO"
-            )
+            self._log.log("Key deletion cancelled.", level="INFO")
             return
         if result.was_empty:
-            self._log.log(
-                "Empty passphrase - only public keys will be deleted.",
-                level="WARN"
-            )
+            self._log.log("Empty passphrase - only public key may be deleted.", level="WARN")
+
         self.run_worker(
             self._worker_delete(fp, result),
             thread=True,
             name="delete_key"
         )
-
 
     async def _worker_delete(self, fp: str, result: PassphraseResult) -> None:
         ok_sec = await asyncio.to_thread(
@@ -360,28 +354,36 @@ class KeyManagementScreen(Screen):
             delete_key,
             self.gpg,
             fp,
-            secret=False
+            secret=False,
         )
-        self.app.call_from_thread(self._finish_delete, ok_sec, ok_pub, fp)
+        self.app.call_from_thread(
+            self._finish_delete,
+            ok_sec,
+            ok_pub,
+            fp
+        )
 
-    def _finish_delete(
-        self,
-        ok_sec: bool,
-        ok_pub: bool,
-        fp: str
-    ) -> None:
-        log = self._log
-        log.log_result(ok=ok_sec, label=f"delete secret key ({fp[-16:]})")
-        log.log_result(ok=ok_pub, label=f"delete public key ({fp[-16:]})")
+    def _finish_delete(self, ok_sec: bool, ok_pub: bool, fp: str) -> None:
+        self._log.log_result(
+            ok=ok_sec,
+            label=f"delete secret key ({fp[-16:]})",
+        )
+        self._log.log_result(
+            ok=ok_pub,
+            label=f"delete public key ({fp[-16:]})"
+        )
+
         if ok_pub:
             self._key_detail.clear()
             self._key_list.refresh_keys(self.gpg)
 
     def action_set_trust(self) -> None:
-        """Open the `TrustModal` for the currently selected key."""
         info = self._cursor_key
         if info is None:
-            self._log.log("No key selected.", level="WARN")
+            self._log.log(
+                "No key selected.", 
+                level="WARN"
+            )
             return
         self.app.push_screen(
             TrustModal(
@@ -393,7 +395,10 @@ class KeyManagementScreen(Screen):
 
     def _on_trust_modal_result(self, result: TrustResult) -> None:
         if result.cancelled:
-            self._log.log("Trust assignment cancelled.", level="INFO")
+            self._log.log(
+                "Trust assignment cancelled.",
+                level="INFO"
+            )
             return
         info = self._cursor_key
         if info is None:
@@ -413,21 +418,81 @@ class KeyManagementScreen(Screen):
                 trust_value
             )
             ok = True
-        except Exception as exc:
+        except Exception:
             ok = False
-        self.app.call_from_thread(self._finish_trust, ok, fp, trust_value)
+        self.app.call_from_thread(
+            self._finish_trust,
+            ok,
+            fp,
+            trust_value
+        )
 
     def _finish_trust(self, ok: bool, fp: str, trust_value: str) -> None:
         self._log.log_result(
             ok=ok,
-            label=f"trust_keys({fp[-16:]}, {trust_value})"
+            label=f"trust_keys({fp[-16:]}, {trust_value})",
         )
         if ok:
             self._key_list.refresh_keys(self.gpg)
             info = self._cursor_key
             if info:
                 self._key_detail.show(info, self.gpg)
+                
+    def action_keyserver(self) -> None:
+        from partizan_gpg.tui.settings import load_settings
+        cfg = load_settings()
+        cursor = self._cursor_key
+        self.app.push_screen(
+            KeyserverModal(
+                gpg=self.gpg,
+                keyserver_url=cfg.keyserver_url_resolved(),
+                prefill_fingerprint=cursor.fingerprint if cursor else None
+            ),
+            callback=self._on_keyserver_result
+        )
 
+    def _on_keyserver_result(self, result: KeyserverResult) -> None:
+        if result.cancelled:
+            self._log.log("Keyserver operation cancelled.", level="INFO")
+            return
+        
+        if result.mode == "search":
+            if result.error:
+                self._log.log_result(
+                    ok=False,
+                    label="keyserver fetch",
+                    detail=result.error
+                )
+            elif result.imported_fps:
+                self._log.log_result(
+                    ok=True,
+                    label=f"keyserver fetch - {len(result.imported_fps)} key(s) imported",
+                    detail="  ".join(fp[-16:] for fp in result.imported_fps)
+                )
+                self._key_list.refresh_keys(self.gpg)
+            else:
+                self._log.log_result(
+                    ok=True,
+                    label="keyserver fetch - key already in keyring"
+                )
+
+        else:
+            if result.error:
+                self._log.log_result(
+                    ok=False,
+                    label="keyserver upload",
+                    detail=result.error
+                )
+            else:
+                self._log.log_result(
+                    ok=True,
+                    label=f"keyserver upload - {result.query[-16:]}",
+                    detail=(
+                        "Verification email sent to each UID address. "
+                        "Confirm to make the key searchable by email."
+                    )
+                )
+    
     def action_save_log(self) -> None:
         self._log.save()
 
@@ -438,9 +503,8 @@ class KeyManagementScreen(Screen):
             f"{self._key_list.row_count} key(s) in keyring.",
             level="INFO"
         )
-    
+
     def action_cycle_focus(self) -> None:
-        """Tab - cycle focus between the key list and detail panel."""
         focused = self.focused
         if focused and focused.id == "km-key-list":
             self._key_detail.focus()
@@ -448,21 +512,21 @@ class KeyManagementScreen(Screen):
             self._key_list.focus()
 
     def action_go_home(self) -> None:
-        # self.app.switch_screen("home") if "home" in self.app._installed_screens else self.app.pop_screen()
         self.app.pop_screen()
 
     @property
     def _log(self) -> OperationLogWidget:
         return self.query_one("#km-op-log", OperationLogWidget)
-    
+
     @property
     def _key_list(self) -> KeyListWidget:
         return self.query_one("#km-key-list", KeyListWidget)
-    
+
     @property
     def _key_detail(self) -> KeyDetailWidget:
         return self.query_one("#km-key-detail", KeyDetailWidget)
-    
+
     @property
     def _cursor_key(self) -> KeyInfo | None:
         return self._key_list.get_cursor_key()
+
