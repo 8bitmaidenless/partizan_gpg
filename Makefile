@@ -6,7 +6,7 @@
 
 install:
 	poetry install --with dev
-	poetry run pip install pyinstaller
+	poetry run pip install --upgrade pip && poetry run pip install pyinstaller
 
 build:
 	poetry run pyinstaller partizan_gpg.spec
