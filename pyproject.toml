@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "partizan_gpg"
-version = "0.3.0"
+version = "0.3.1"
 description = "Part of the Partizan Framework. Enables Terminal UI for GPG / PGP key & encryption operations."
 authors = ["Dylan Garrett"]
 license = "MIT"
