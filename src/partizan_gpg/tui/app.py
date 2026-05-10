@@ -83,7 +83,7 @@ class GPGApp(App):
         padding: 1 2;
     }
     #passphrase-modal-title {
-        text-stye: bold;
+        text-style: bold;
         color: $text;
         width: 100%;
         margin-bottom: 0;

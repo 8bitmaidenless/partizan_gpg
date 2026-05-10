@@ -44,6 +44,7 @@ class ConfigScreen(Screen):
         width: 100%;
         padding: 1 3;
     }
+
     .cfg-section-label {
         color: $primary;
         text-style: bold;
@@ -51,40 +52,49 @@ class ConfigScreen(Screen):
         margin-bottom: 0;
         padding-left: 0;
     }
+
     .cfg-divider {
         color: $primary-darken-2;
         margin-bottom: 1;
         margin-top: 0;
     }
+
     .cfg-row {
         height: auto;
         width: 100%;
         margin-bottom: 1;
         align: left top;
     }
+
     .cfg-label {
         width: 22;
         color: $text-muted;
         padding-top: 1;
     }
+
     .cfg-input-col {
         width: 1fr;
         height: auto;
     }
+
     .cfg-row Input {
         width: 100%;
         border: tall $primary-darken-1;
     }
+
     .cfg-row Input:focus {
         border: tall $primary;
     }
+
     .cfg-row Select {
         width: 1fr;
         border: tall $primary-darken-1;
     }
+
     .cfg-row Select:focus {
         border: tall $primary;
     }
+
     .cfg-status {
         color: $text-muted;
         text-style: italic;
@@ -92,26 +102,32 @@ class ConfigScreen(Screen):
         padding-left: 0;
         margin-top: 0;
     }
+
     .cfg-status-ok {
         color: $success;
     }
+
     .cfg-status-err {
         color: $error;
     }
+
     .cfg-about-value {
         color: $text-muted;
         padding-top: 0;
         width: 1fr;
     }
+
     .cfg-spacer {
         height: 1;
     }
+
     #cfg-buttons {
         height: auto;
         width: 100%;
         align: left middle;
         margin-bottom: 1;
     }
+
     #cfg-buttons Button {
         margin-right: 1;
         min-width: 12;

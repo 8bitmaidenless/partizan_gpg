@@ -32,51 +32,6 @@ class TrustModal(ModalScreen[TrustResult]):
 
     BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
 
-    DEFAULT_CSS = """
-    #tm-outer {
-        align: center middle;
-        width: 100%;
-        height: 100%;
-    }
-    #tm-inner {
-        width: 56;
-        height: auto;
-        background: $surface;
-        border: tall $primary;
-        padding: 1 2;
-    }
-    #tm-title {
-        text-style: bold;
-        color: $text;
-        margin-bottom: 0;
-    }
-    #tm-divider {
-        color: $primary;
-        margin-bottom: 1;
-    }
-    #tm-description {
-        color: $text-muted;
-        text-style: italic;
-        margin-bottom: 1;
-    }
-    #tm-trust-set {
-        height: auto;
-        border: none;
-        margin-bottom: 1;
-    }
-    #tm-buttons {
-        layout: horizontal;
-        height: auto;
-        align: right middle;
-        width: 100%;
-        margin-top: 1;
-    }
-    #tm-buttons Button {
-        margin-left: 1;
-        min-width: 12;
-    }
-    """
-
     def __init__(self, key_label: str = "", current_trust: str = "") -> None:
         super().__init__()
         self._key_label = key_label
