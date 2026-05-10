@@ -143,6 +143,27 @@ class ConfigScreen(Screen):
         margin-right: 1;
         min-width: 12;
     }
+    .cfg-switch-row {
+        align: left middle;
+    }
+    .cfg-switch-row .cfg-label {
+        padding-top: 0;
+    }
+    .cfg-status-warn {
+        color: $warning;
+        text-style: bold italic;
+    }
+    .cfg-cache-warning {
+        margin-top: 1;
+        margin-bottom: 1;
+        padding: 1 2;
+        border: tall $warning;
+        color: $warning;
+        text-style: bold;
+        background: $surface;
+        width: 100%;
+        height: auto;
+    }
     """
 
     BINDINGS = [

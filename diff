@@ -1,0 +1,2299 @@
+*** ./src/partizan_gpg/tui/screens/encrypt_decrypt.py	Sun May 10 11:45:08 2026
+--- /Users/glizzok/Downloads/encrypt_decrypt.py	Sun May 10 11:12:44 2026
+***************
+*** 17,23 ****
+      RadioButton,[m
+      RadioSet,[m
+      Static,[m
+!     TextArea[m
+  )[m
+  [m
+  from partizan_gpg.cipherlib import ([m
+--- 17,23 ----
+      RadioButton,[m
+      RadioSet,[m
+      Static,[m
+!     TextArea,[m
+  )[m
+  [m
+  from partizan_gpg.cipherlib import ([m
+***************
+*** 27,33 ****
+      encrypt_to_recipients,[m
+      sign_detached,[m
+      verify_clearsign,[m
+!     verify_detached[m
+  )[m
+  from partizan_gpg.tui.widgets.key_list import KeyInfo, KeyListWidget[m
+  from partizan_gpg.tui.widgets.operation_log import OperationLogWidget[m
+--- 27,33 ----
+      encrypt_to_recipients,[m
+      sign_detached,[m
+      verify_clearsign,[m
+!     verify_detached,[m
+  )[m
+  from partizan_gpg.tui.widgets.key_list import KeyInfo, KeyListWidget[m
+  from partizan_gpg.tui.widgets.operation_log import OperationLogWidget[m
+***************
+*** 54,211 ****
+  class EncryptDecryptScreen(Screen):[m
+      TITLE = "Encrypt / Decrypt"[m
+  [m
+!     # CSS_PATH = [[m
+!     #     str(_CSS_DIR / "key_list.tcss"),[m
+!     #     str(_CSS_DIR / "encrypt_decrypt.tcss"),[m
+!     # ][m
+!     DEFAULT_CSS = """[m
+! #ed-main {[m
+!     height: 1fr;[m
+!     width: 100%;[m
+! }[m
+  [m
+[31m- #ed-left {[m
+[31m-     width: 60%;[m
+[31m-     height: 100%;[m
+[31m-     padding: 0 1 0 0;[m
+[31m-     border-right: tall $primary-darken-2;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-right {[m
+[31m-     width: 40%;[m
+[31m-     height: 100%;[m
+[31m-     padding: 0 0 0 1;[m
+[31m- }[m
+[31m- [m
+[31m- .ed-section-label {[m
+[31m-     color: $primary;[m
+[31m-     text-style: bold;[m
+[31m-     margin-top: 1;[m
+[31m-     margin-bottom: 0;[m
+[31m-     padding-left: 1;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-mode-set {[m
+[31m-     height: auto;[m
+[31m-     border: none;[m
+[31m-     padding: 0;[m
+[31m-     margin-bottom: 0;[m
+[31m-     background: transparent;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-mode-set RadioButton {[m
+[31m-     padding: 0 1;[m
+[31m-     height: 1;[m
+[31m-     background: transparent;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-mode-set RadioButton:hover {[m
+[31m-     background: $primary-darken-2;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-mode-set RadioButton.-selected {[m
+[31m-     color: $primary;[m
+[31m-     text-style: bold;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-input-toggle {[m
+[31m-     height: auto;[m
+[31m-     padding: 0 1;[m
+[31m-     margin-bottom: 0;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-input-toggle Button {[m
+[31m-     min-width: 12;[m
+[31m-     height: 1;[m
+[31m-     margin-right: 1;[m
+[31m-     border: none;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-input-text {[m
+[31m-     height: 8;[m
+[31m-     margin: 0 1;[m
+[31m-     border: tall $primary-darken-1;[m
+[31m-     background: $surface;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-input-text:focus {[m
+[31m-     border: tall $primary;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-input-file {[m
+[31m-     margin: 0 1;[m
+[31m-     border: tall $primary-darken-1;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-input-file:focus {[m
+[31m-     border: tall $primary;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-sig-text {[m
+[31m-     height: 6;[m
+[31m-     margin: 0 1;[m
+[31m-     border: tall $primary-darken-1;[m
+[31m-     background: $surface;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-sig-text:focus {[m
+[31m-     border: tall $primary;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-options {[m
+[31m-     height: auto;[m
+[31m-     padding: 0 1;[m
+[31m-     margin-top: 1;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-options Checkbox {[m
+[31m-     margin-right: 2;[m
+[31m-     background: transparent;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-sign-hint {[m
+[31m-     color: $text-muted;[m
+[31m-     text-style: italic;[m
+[31m-     padding-left: 1;[m
+[31m-     margin-bottom: 0;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-run-btn {[m
+[31m-     margin: 1 1 0 1;[m
+[31m-     width: 1fr;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-output {[m
+[31m-     height: 1fr;[m
+[31m-     margin: 0 1 0 1;[m
+[31m-     border: tall $primary-darken-2;[m
+[31m-     background: $background;[m
+[31m-     color: $text-muted;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-output:focus {[m
+[31m-     border: tall $primary-darken-1;[m
+[31m-     color: $text;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-key-list {[m
+[31m-     height: 1fr;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-selection-status {[m
+[31m-     height: auto;[m
+[31m-     color: yellow;[m
+[31m-     padding: 0 1;[m
+[31m-     margin-top: 0;[m
+[31m- }[m
+[31m- [m
+[31m- #ed-op-log {[m
+[31m-     height: 8;[m
+[31m-     border-top: tall $primary-darken-2;[m
+[31m-     background: $background;[m
+[31m- }[m
+[31m-     """[m
+[31m-     [m
+      BINDINGS = [[m
+          Binding("1", "set_mode('0')", "Encrypt→recip.", show=False),[m
+          Binding("2", "set_mode('1')", "Sym. encrypt",   show=False),[m
+--- 54,64 ----
+  class EncryptDecryptScreen(Screen):[m
+      TITLE = "Encrypt / Decrypt"[m
+  [m
+!     CSS_PATH = [[m
+!         str(_CSS_DIR / "key_list.tcss"),[m
+!         str(_CSS_DIR / "encrypt_decrypt.tcss"),[m
+!     ][m
+  [m
+      BINDINGS = [[m
+          Binding("1", "set_mode('0')", "Encrypt→recip.", show=False),[m
+          Binding("2", "set_mode('1')", "Sym. encrypt",   show=False),[m
+***************
+*** 229,234 ****
+--- 81,90 ----
+          self._input_mode = "text"[m
+          self._pending: dict = {}[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Composition[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def compose(self) -> ComposeResult:[m
+          yield Header()[m
+  [m
+***************
+*** 247,260 ****
+                  yield TextArea("", id="ed-input-text", show_line_numbers=False)[m
+                  yield Input([m
+                      placeholder="Absolute or relative file path...",[m
+!                     id="ed-input-file"[m
+                  )[m
+  [m
+                  yield Label([m
+                      "Detached signature [i](paste [b].asc[/b] content)[/i]:",[m
+!                     id="ed-sig-label",[m
+!                     classes="ed-section-label",[m
+!                     markup=True[m
+                  )[m
+                  yield TextArea("", id="ed-sig-text", show_line_numbers=False)[m
+  [m
+--- 103,114 ----
+                  yield TextArea("", id="ed-input-text", show_line_numbers=False)[m
+                  yield Input([m
+                      placeholder="Absolute or relative file path...",[m
+!                     id="ed-input-file",[m
+                  )[m
+  [m
+                  yield Label([m
+                      "Detached signature [i](paste [b].asc[/b] content)[/i]:",[m
+!                     id="ed-sig-label", classes="ed-section-label", markup=True,[m
+                  )[m
+                  yield TextArea("", id="ed-sig-text", show_line_numbers=False)[m
+  [m
+***************
+*** 264,270 ****
+  [m
+                  yield Static([m
+                      "  Signing key: move cursor to it (no [b]Space[/b] needed) →",[m
+!                     id="ed-sign-hint"[m
+                  )[m
+  [m
+                  yield Button("▶  Run", variant="primary", id="ed-run-btn")[m
+--- 118,124 ----
+  [m
+                  yield Static([m
+                      "  Signing key: move cursor to it (no [b]Space[/b] needed) →",[m
+!                     id="ed-sign-hint",[m
+                  )[m
+  [m
+                  yield Button("▶  Run", variant="primary", id="ed-run-btn")[m
+***************
+*** 274,282 ****
+  [m
+              with Vertical(id="ed-right"):[m
+                  yield Label([m
+!                     "[u]Keys[/u]  [i]([b]Space[/b] = Select recipient / signer)[/i]",[m
+!                     classes="ed-section-label",[m
+!                     markup=True[m
+                  )[m
+                  yield KeyListWidget(gpg=self.gpg, id="ed-key-list")[m
+                  yield Static("", id="ed-selection-status", markup=True)[m
+--- 128,135 ----
+  [m
+              with Vertical(id="ed-right"):[m
+                  yield Label([m
+!                     "[u]Keys[/u]  [i]([b]Space[/b] = select recipient / signer)[/i]",[m
+!                     classes="ed-section-label", markup=True,[m
+                  )[m
+                  yield KeyListWidget(gpg=self.gpg, id="ed-key-list")[m
+                  yield Static("", id="ed-selection-status", markup=True)[m
+***************
+*** 284,289 ****
+--- 137,146 ----
+          yield OperationLogWidget(id="ed-op-log")[m
+          yield Footer()[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Lifecycle[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def on_mount(self) -> None:[m
+          self._log.clear()[m
+          self._log.log_separator("Encrypt / Decrypt")[m
+***************
+*** 299,304 ****
+--- 156,165 ----
+          self._key_list.refresh_keys(self.gpg)[m
+          self._apply_mode(self._mode_idx)[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Mode selection[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def on_radio_set_changed(self, event: RadioSet.Changed) -> None:[m
+          self._apply_mode(event.radio_set.pressed_index)[m
+  [m
+***************
+*** 344,349 ****
+--- 205,214 ----
+          self._output.clear()[m
+          self._log.log(f"Mode → {_MODE_LABELS[idx]}", level="INFO")[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Button / checkbox events[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def on_button_pressed(self, event: Button.Pressed) -> None:[m
+          bid = event.button.id[m
+          if bid == "ed-btn-text":[m
+***************
+*** 367,374 ****
+              )[m
+  [m
+      def on_key_list_widget_selection_changed([m
+!         self,[m
+!         event: KeyListWidget.SelectionChanged[m
+      ) -> None:[m
+          n = len(event.fingerprints)[m
+          status = self.query_one("#ed-selection-status", Static)[m
+--- 232,238 ----
+              )[m
+  [m
+      def on_key_list_widget_selection_changed([m
+!         self, event: KeyListWidget.SelectionChanged[m
+      ) -> None:[m
+          n      = len(event.fingerprints)[m
+          status = self.query_one("#ed-selection-status", Static)[m
+***************
+*** 376,387 ****
+              status.update("")[m
+          elif self._mode_idx in (3, 5):[m
+              status.update([m
+!                 f"  ⚠ Signing uses the [b]cursor[/b], not [b]Space[/b]. "[m
+!                 f"Clear selection with [b]Esc[/b]."[m
+              )[m
+          else:[m
+              status.update(f"  + {n} recipient(s) selected")[m
+  [m
+      def action_run_operation(self) -> None:[m
+          dispatch = {[m
+              0: self._run_encrypt_recipients,[m
+--- 240,255 ----
+              status.update("")[m
+          elif self._mode_idx in (3, 5):[m
+              status.update([m
+!                 "  ⚠ Signing uses the [b]cursor[/b], not [b]Space[/b]. "[m
+!                 "Clear with [b]Esc[/b]."[m
+              )[m
+          else:[m
+              status.update(f"  + {n} recipient(s) selected")[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Run dispatch[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def action_run_operation(self) -> None:[m
+          dispatch = {[m
+              0: self._run_encrypt_recipients,[m
+***************
+*** 390,422 ****
+              3: self._run_clearsign,[m
+              4: self._run_verify_clearsign,[m
+              5: self._run_sign_detached,[m
+!             6: self._run_verify_detached[m
+          }[m
+          fn = dispatch.get(self._mode_idx)[m
+          if fn:[m
+              fn()[m
+  [m
+      def _get_input_bytes(self) -> bytes | None:[m
+!         # if self._input_mode == "text":[m
+!         #     text = self.query_one("#ed-input-text", TextArea).text.strip()[m
+!         #     if not text:[m
+!         #         self._log.log("Input is empty.", level="WARN")[m
+!         #         return None[m
+!         #     return text.encode("utf-8")[m
+!         # else:[m
+!         #     path_str = self.query_one("#ed-input-file", Input).value.strip()[m
+!         #     if not path_str:[m
+!         #         self._log.log("No file path entered.", level="WARN")[m
+!         #         return None[m
+!         #     path = Path(path_str)[m
+!         #     if not path.exists():[m
+!         #         self._log.log(f"File not found: {path}", level="ERR")[m
+!         #         return None[m
+!         #     try:[m
+!         #         return path.read_bytes()[m
+!         #     except OSError as exc:[m
+!         #         self._log.log(f"Cannot read file: {exc}", level="ERR")[m
+!         #         return None[m
+              [m
+      def _get_input_str(self) -> str | None:[m
+          raw = self._get_input_bytes()[m
+--- 258,294 ----
+              3: self._run_clearsign,[m
+              4: self._run_verify_clearsign,[m
+              5: self._run_sign_detached,[m
+!             6: self._run_verify_detached,[m
+          }[m
+          fn = dispatch.get(self._mode_idx)[m
+          if fn:[m
+              fn()[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Input helpers[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _get_input_bytes(self) -> bytes | None:[m
+!         if self._input_mode == "text":[m
+!             text = self.query_one("#ed-input-text", TextArea).text.strip()[m
+!             if not text:[m
+!                 self._log.log("Input is empty.", level="WARN")[m
+!                 return None[m
+!             return text.encode("utf-8")[m
+!         else:[m
+!             path_str = self.query_one("#ed-input-file", Input).value.strip()[m
+!             if not path_str:[m
+!                 self._log.log("No file path entered.", level="WARN")[m
+!                 return None[m
+!             path = Path(path_str)[m
+!             if not path.exists():[m
+!                 self._log.log(f"File not found: {path}", level="ERR")[m
+!                 return None[m
+!             try:[m
+!                 return path.read_bytes()[m
+!             except OSError as exc:[m
+!                 self._log.log(f"Cannot read file: {exc}", level="ERR")[m
+!                 return None[m
+  [m
+      def _get_input_str(self) -> str | None:[m
+          raw = self._get_input_bytes()[m
+***************
+*** 458,493 ****
+          else:[m
+              path_str = self.query_one("#ed-input-file", Input).value.strip()[m
+              if not path_str:[m
+!                 p = Path.cwd() / "output.txt"[m
+!                 path_str = str(p)[m
+              path = Path(path_str)[m
+              if isinstance(data, str):[m
+[31m-                 try:[m
+                      bit = data.encode("utf-8")[m
+                      suf = ".gpg"[m
+                      method = "write_bytes"[m
+[31m-                 except UnicodeEncodeError:[m
+[31m-                     path = path.with_suffix(".asc")[m
+[31m-                     bit = data[m
+[31m-                     method = "write_text"[m
+[31m-                     text = ([m
+[31m-                         f"<output - {len(data)} chars>\n"[m
+[31m-                         "(Use armor output mode to check output, cannot encode)"[m
+[31m-                     )[m
+[31m-                     out.load_text(text)[m
+              else:[m
+                  suf = ".gpg"[m
+                  method = "write_bytes"[m
+[31m-                 bit = data[m
+[31m-                 # path.write_bytes(data)[m
+              path = path.with_suffix(suf)[m
+!             write_method = getattr(path, method, path.write_bytes)[m
+!             write_method(bit)[m
+              [m
+!             self._log.log([m
+!                 f"Output written to -> '{path}'"[m
+!             )[m
+          [m
+      def _run_encrypt_recipients(self) -> None:[m
+          plaintext = self._get_input_bytes()[m
+          if plaintext is None:[m
+--- 330,372 ----
+          else:[m
+              path_str = self.query_one("#ed-input-file", Input).value.strip()[m
+              if not path_str:[m
+!                 path_str = str(Path.cwd() / "output.txt")[m
+              path = Path(path_str)[m
+              if isinstance(data, str):[m
+                  bit = data.encode("utf-8")[m
+                  suf = ".gpg"[m
+                  method = "write_bytes"[m
+              else:[m
+[32m+                 bit = data[m
+                  suf = ".gpg"[m
+                  method = "write_bytes"[m
+              path = path.with_suffix(suf)[m
+!             getattr(path, method)(bit)[m
+!             self._log.log(f"Output written to → '{path}'")[m
+  [m
+!     # ------------------------------------------------------------------[m
+!     # Passphrase cache helpers[m
+!     # ------------------------------------------------------------------[m
+  [m
+[32m+     def _get_cached(self, fingerprint: str) -> str | None:[m
+[32m+         """Return a cached passphrase (or None) without touching the modal."""[m
+[32m+         return self.app.get_cached_passphrase(fingerprint)[m
+[32m+ [m
+[32m+     def _store_cached(self, fingerprint: str, passphrase: str | None) -> None:[m
+[32m+         """Store a passphrase in the app-level cache after a successful op."""[m
+[32m+         self.app.cache_passphrase(fingerprint, passphrase)[m
+[32m+ [m
+[32m+     def _evict_cached(self, fingerprint: str) -> None:[m
+[32m+         """Evict a stale entry after a GPG failure with a cached passphrase."""[m
+[32m+         self.app.evict_passphrase(fingerprint)[m
+[32m+ [m
+[32m+     def _log_cache_hit(self, key_id: str) -> None:[m
+[32m+         self._log.log(f"Using cached passphrase for {key_id}.", level="INFO")[m
+[32m+ [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 1: Encrypt → recipients[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_encrypt_recipients(self) -> None:[m
+          plaintext  = self._get_input_bytes()[m
+          if plaintext is None:[m
+***************
+*** 496,503 ****
+          recipients = self._get_selected_fingerprints()[m
+          if not recipients:[m
+              self._log.log([m
+!                 "Select at least one recipient key with [Space].",[m
+!                 level="WARN"[m
+              )[m
+              return[m
+          [m
+--- 375,381 ----
+          recipients = self._get_selected_fingerprints()[m
+          if not recipients:[m
+              self._log.log([m
+!                 "Select at least one recipient key with [Space].", level="WARN"[m
+              )[m
+              return[m
+  [m
+***************
+*** 510,555 ****
+                  self._log.log([m
+                      "Move the cursor to your signing key (arrow keys). "[m
+                      "It does not need to be Space-selected.",[m
+!                     level="WARN"[m
+                  )[m
+                  return[m
+              [m
+              if signer_info.fingerprint in recipients:[m
+                  self._log.log([m
+!                     f"⚠ Signing key ({signer_info.key_id}) is also a recipient - "[m
+                      "move the cursor to a different key if this is unintentional.",[m
+!                     level="WARN"[m
+                  )[m
+  [m
+              self._log.log_separator([m
+                  f"Encrypt+Sign → {len(recipients)} recipient(s)  "[m
+                  f"[signer: {signer_info.key_id}]"[m
+              )[m
+              self._pending = {[m
+                  "plaintext": plaintext,[m
+                  "recipients": recipients,[m
+                  "armor": armor,[m
+                  "sign_fp": signer_info.fingerprint,[m
+              }[m
+              self.app.push_screen([m
+                  PassphraseModal([m
+                      title=f"Passphrase for signing key: {signer_info.name} "[m
+                            f"<{signer_info.key_id}>"[m
+                  ),[m
+!                 callback=self._on_encrypt_sign_pass[m
+              )[m
+          else:[m
+              self._log.log_separator(f"Encrypt → {len(recipients)} recipient(s)")[m
+              self.run_worker([m
+                  self._worker_encrypt_recipients([m
+!                     plaintext,[m
+!                     recipients,[m
+!                     armor,[m
+!                     sign_fp=None,[m
+!                     passphrase=None[m
+                  ),[m
+!                 thread=True,[m
+!                 name="encrypt_recipients"[m
+              )[m
+      [m
+      def _on_encrypt_sign_pass(self, result: PassphraseResult) -> None:[m
+--- 388,450 ----
+                  self._log.log([m
+                      "Move the cursor to your signing key (arrow keys). "[m
+                      "It does not need to be Space-selected.",[m
+!                     level="WARN",[m
+                  )[m
+                  return[m
+  [m
+              if signer_info.fingerprint in recipients:[m
+                  self._log.log([m
+!                     f"⚠ Signing key ({signer_info.key_id}) is also a recipient — "[m
+                      "move the cursor to a different key if this is unintentional.",[m
+!                     level="WARN",[m
+                  )[m
+  [m
+              self._log.log_separator([m
+                  f"Encrypt+Sign → {len(recipients)} recipient(s)  "[m
+                  f"[signer: {signer_info.key_id}]"[m
+              )[m
+[32m+ [m
+[32m+             cached = self._get_cached(signer_info.fingerprint)[m
+[32m+             if cached is not None:[m
+[32m+                 self._log_cache_hit(signer_info.key_id)[m
+                  self._pending = {[m
+                      "plaintext":  plaintext,[m
+                      "recipients": recipients,[m
+                      "armor":      armor,[m
+                      "sign_fp":    signer_info.fingerprint,[m
+[32m+                     "passphrase": cached,[m
+[32m+                     "cached":     True,[m
+                  }[m
+[32m+                 self.run_worker([m
+[32m+                     self._worker_encrypt_recipients([m
+[32m+                         plaintext, recipients, armor,[m
+[32m+                         sign_fp=signer_info.fingerprint, passphrase=cached,[m
+[32m+                     ),[m
+[32m+                     thread=True, name="encrypt_recipients",[m
+[32m+                 )[m
+[32m+                 return[m
+[32m+ [m
+[32m+             self._pending = {[m
+[32m+                 "plaintext":  plaintext,[m
+[32m+                 "recipients": recipients,[m
+[32m+                 "armor":      armor,[m
+[32m+                 "sign_fp":    signer_info.fingerprint,[m
+[32m+             }[m
+              self.app.push_screen([m
+                  PassphraseModal([m
+                      title=f"Passphrase for signing key: {signer_info.name} "[m
+                            f"<{signer_info.key_id}>"[m
+                  ),[m
+!                 callback=self._on_encrypt_sign_pass,[m
+              )[m
+          else:[m
+              self._log.log_separator(f"Encrypt → {len(recipients)} recipient(s)")[m
+              self.run_worker([m
+                  self._worker_encrypt_recipients([m
+!                     plaintext, recipients, armor,[m
+!                     sign_fp=None, passphrase=None,[m
+                  ),[m
+!                 thread=True, name="encrypt_recipients",[m
+              )[m
+  [m
+      def _on_encrypt_sign_pass(self, result: PassphraseResult) -> None:[m
+***************
+*** 561,580 ****
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase - assuming signing key has no passphrase.",[m
+!                 level="WARN"[m
+              )[m
+  [m
+          self.run_worker([m
+              self._worker_encrypt_recipients([m
+!                 pending["plaintext"],[m
+!                 pending["recipients"],[m
+!                 pending["armor"],[m
+!                 sign_fp=pending["sign_fp"],[m
+!                 passphrase=result.passphrase[m
+              ),[m
+!             thread=True,[m
+!             name="encrypt_recipients"[m
+          )[m
+  [m
+      async def _worker_encrypt_recipients([m
+--- 456,472 ----
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase — assuming signing key has no passphrase.",[m
+!                 level="WARN",[m
+              )[m
+  [m
+[32m+         self._store_cached(pending["sign_fp"], result.passphrase)[m
+          self.run_worker([m
+              self._worker_encrypt_recipients([m
+!                 pending["plaintext"], pending["recipients"], pending["armor"],[m
+!                 sign_fp=pending["sign_fp"], passphrase=result.passphrase,[m
+              ),[m
+!             thread=True, name="encrypt_recipients",[m
+          )[m
+  [m
+      async def _worker_encrypt_recipients([m
+***************
+*** 583,608 ****
+          recipients: list[str],[m
+          armor: bool,[m
+          sign_fp: str | None,[m
+!         passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+              encrypt_to_recipients,[m
+!             self.gpg,[m
+!             plaintext,[m
+!             recipients,[m
+!             armor=armor,[m
+!             sign=sign_fp,[m
+!             passphrase=passphrase,[m
+!             always_trust=True[m
+          )[m
+!         self.app.call_from_thread(self._finish_encrypt_recipients, result, armor)[m
+  [m
+      def _finish_encrypt_recipients([m
+          self,[m
+          result: str | bytes | None,[m
+!         armor: bool[m
+      ) -> None:[m
+          ok = result is not None[m
+          self._log.log_result([m
+              ok=ok,[m
+              label="encrypt_to_recipients",[m
+--- 475,506 ----
+          recipients: list[str],[m
+          armor:      bool,[m
+          sign_fp:    str | None,[m
+!         passphrase: str | None,[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+              encrypt_to_recipients,[m
+!             self.gpg, plaintext, recipients,[m
+!             armor=armor, sign=sign_fp,[m
+!             passphrase=passphrase, always_trust=True,[m
+          )[m
+!         self.app.call_from_thread([m
+!             self._finish_encrypt_recipients, result, armor, sign_fp,[m
+!         )[m
+  [m
+      def _finish_encrypt_recipients([m
+          self,[m
+          result:  str | bytes | None,[m
+!         armor:   bool,[m
+!         sign_fp: str | None,[m
+      ) -> None:[m
+          ok = result is not None[m
+[32m+         # Evict stale cache entry if signing failed.[m
+[32m+         if not ok and sign_fp and self._get_cached(sign_fp):[m
+[32m+             self._evict_cached(sign_fp)[m
+[32m+             self._log.log([m
+[32m+                 "Cached passphrase may be wrong — evicted. You will be prompted again.",[m
+[32m+                 level="WARN",[m
+[32m+             )[m
+          self._log.log_result([m
+              ok=ok,[m
+              label="encrypt_to_recipients",[m
+***************
+*** 610,619 ****
+                  f"{len(result)} chars" if ok and isinstance(result, str)[m
+                  else f"{len(result)} bytes" if ok[m
+                  else None[m
+              )[m
+[31m-         )[m
+          self._write_output(result)[m
+  [m
+      def _run_encrypt_symmetric(self) -> None:[m
+          plaintext = self._get_input_bytes()[m
+          if plaintext is None:[m
+--- 508,521 ----
+                  f"{len(result)} chars" if ok and isinstance(result, str)[m
+                  else f"{len(result)} bytes" if ok[m
+                  else None[m
+[32m+             ),[m
+          )[m
+          self._write_output(result)[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 2: Symmetric encrypt  (no fingerprint — no cache)[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_encrypt_symmetric(self) -> None:[m
+          plaintext = self._get_input_bytes()[m
+          if plaintext is None:[m
+***************
+*** 621,627 ****
+          self._pending = {"plaintext": plaintext}[m
+          self.app.push_screen([m
+              PassphraseModal(title="Passphrase for symmetric encryption"),[m
+!             callback=self._on_sym_passphrase[m
+          )[m
+      [m
+      def _on_sym_passphrase(self, result: PassphraseResult) -> None:[m
+--- 523,529 ----
+          self._pending = {"plaintext": plaintext}[m
+          self.app.push_screen([m
+              PassphraseModal(title="Passphrase for symmetric encryption"),[m
+!             callback=self._on_sym_passphrase,[m
+          )[m
+  [m
+      def _on_sym_passphrase(self, result: PassphraseResult) -> None:[m
+***************
+*** 633,640 ****
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase - symmetric ciphertext will use a blank key.",[m
+!                 level="WARN"[m
+              )[m
+          [m
+          self._log.log_separator("Symmetric Encrypt")[m
+--- 535,541 ----
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase — ciphertext will use a blank key.", level="WARN",[m
+              )[m
+  [m
+          self._log.log_separator("Symmetric Encrypt")[m
+***************
+*** 642,665 ****
+              self._worker_encrypt_symmetric([m
+                  pending["plaintext"],[m
+                  result.passphrase or "",[m
+!                 self._armor_requested()[m
+              ),[m
+!             thread=True,[m
+!             name="encrypt_symmetric"[m
+          )[m
+  [m
+      async def _worker_encrypt_symmetric([m
+!         self,[m
+!         plaintext: bytes,[m
+!         passphrase: str,[m
+!         armor: bool[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             encrypt_symmetric,[m
+!             self.gpg,[m
+!             plaintext,[m
+!             passphrase,[m
+!             armor=armor[m
+          )[m
+          self.app.call_from_thread(self._finish_encrypt_symmetric, result)[m
+  [m
+--- 543,558 ----
+              self._worker_encrypt_symmetric([m
+                  pending["plaintext"],[m
+                  result.passphrase or "",[m
+!                 self._armor_requested(),[m
+              ),[m
+!             thread=True, name="encrypt_symmetric",[m
+          )[m
+  [m
+      async def _worker_encrypt_symmetric([m
+!         self, plaintext: bytes, passphrase: str, armor: bool[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             encrypt_symmetric, self.gpg, plaintext, passphrase, armor=armor,[m
+          )[m
+          self.app.call_from_thread(self._finish_encrypt_symmetric, result)[m
+  [m
+***************
+*** 667,672 ****
+--- 560,569 ----
+          self._log.log_result(ok=result is not None, label="encrypt_symmetric")[m
+          self._write_output(result)[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 3: Decrypt  (no fingerprint known upfront — no cache)[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_decrypt(self) -> None:[m
+          ciphertext = self._get_input_bytes()[m
+          if ciphertext is None:[m
+***************
+*** 676,682 ****
+              PassphraseModal([m
+                  title="Passphrase (leave blank for asymmetric / agent-cached key)"[m
+              ),[m
+!             callback=self._on_decrypt_passphrase[m
+          )[m
+  [m
+      def _on_decrypt_passphrase(self, result: PassphraseResult) -> None:[m
+--- 573,579 ----
+              PassphraseModal([m
+                  title="Passphrase (leave blank for asymmetric / agent-cached key)"[m
+              ),[m
+!             callback=self._on_decrypt_passphrase,[m
+          )[m
+  [m
+      def _on_decrypt_passphrase(self, result: PassphraseResult) -> None:[m
+***************
+*** 691,711 ****
+          self._log.log_separator("Decrypt")[m
+          self.run_worker([m
+              self._worker_decrypt(pending["ciphertext"], passphrase),[m
+!             thread=True,[m
+!             name="decrypt"[m
+          )[m
+  [m
+      async def _worker_decrypt([m
+!         self,[m
+!         ciphertext: bytes,[m
+!         passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             decrypt_data,[m
+!             self.gpg,[m
+!             ciphertext,[m
+!             passphrase=passphrase,[m
+!             always_trust=True[m
+          )[m
+          self.app.call_from_thread(self._finish_decrypt, result)[m
+  [m
+--- 588,602 ----
+          self._log.log_separator("Decrypt")[m
+          self.run_worker([m
+              self._worker_decrypt(pending["ciphertext"], passphrase),[m
+!             thread=True, name="decrypt",[m
+          )[m
+  [m
+      async def _worker_decrypt([m
+!         self, ciphertext: bytes, passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             decrypt_data, self.gpg, ciphertext,[m
+!             passphrase=passphrase, always_trust=True,[m
+          )[m
+          self.app.call_from_thread(self._finish_decrypt, result)[m
+  [m
+***************
+*** 713,722 ****
+          self._log.log_result([m
+              ok=result is not None,[m
+              label="decrypt_data",[m
+!             detail=f"{len(result)} bytes plaintext" if result is not None else None[m
+          )[m
+          self._write_output(result)[m
+  [m
+      def _run_clearsign(self) -> None:[m
+          message = self._get_input_str()[m
+          if message is None:[m
+--- 604,617 ----
+          self._log.log_result([m
+              ok=result is not None,[m
+              label="decrypt_data",[m
+!             detail=f"{len(result)} bytes plaintext" if result is not None else None,[m
+          )[m
+          self._write_output(result)[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 4: Clearsign  (fingerprint known — cache applies)[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_clearsign(self) -> None:[m
+          message = self._get_input_str()[m
+          if message is None:[m
+***************
+*** 725,752 ****
+          signer_info = self._get_cursor_key()[m
+          if signer_info is None:[m
+              self._log.log([m
+!                 "Move the cursor to your signing key (arrow keys).",[m
+!                 level="WARN"[m
+              )[m
+              return[m
+          if not signer_info.has_secret:[m
+              self._log.log([m
+                  f"No secret key available for {signer_info.name} "[m
+!                 f"({signer_info.key_id}) - import or generate a secret key first.",[m
+!                 level="ERR"[m
+              )[m
+              return[m
+          [m
+          self._log.log_separator(f"Clearsign  [signer: {signer_info.key_id}]")[m
+          self._pending = {[m
+              "message": message,[m
+!             "sign_fp": signer_info.fingerprint[m
+          }[m
+          self.app.push_screen([m
+              PassphraseModal([m
+                  title=f"Passphrase for: {signer_info.name} <{signer_info.key_id}>"[m
+              ),[m
+!             callback=self._on_clearsign_pass[m
+          )[m
+  [m
+      def _on_clearsign_pass(self, result: PassphraseResult) -> None:[m
+--- 620,657 ----
+          signer_info = self._get_cursor_key()[m
+          if signer_info is None:[m
+              self._log.log([m
+!                 "Move the cursor to your signing key (arrow keys).", level="WARN",[m
+              )[m
+              return[m
+          if not signer_info.has_secret:[m
+              self._log.log([m
+                  f"No secret key available for {signer_info.name} "[m
+!                 f"({signer_info.key_id}) — import or generate one first.",[m
+!                 level="ERR",[m
+              )[m
+              return[m
+  [m
+          self._log.log_separator(f"Clearsign  [signer: {signer_info.key_id}]")[m
+[32m+ [m
+[32m+         cached = self._get_cached(signer_info.fingerprint)[m
+[32m+         if cached is not None:[m
+[32m+             self._log_cache_hit(signer_info.key_id)[m
+              self._pending = {[m
+                  "message": message,[m
+!                 "sign_fp": signer_info.fingerprint,[m
+              }[m
+[32m+             self.run_worker([m
+[32m+                 self._worker_clearsign(message, signer_info.fingerprint, cached),[m
+[32m+                 thread=True, name="clearsign",[m
+[32m+             )[m
+[32m+             return[m
+[32m+ [m
+[32m+         self._pending = {"message": message, "sign_fp": signer_info.fingerprint}[m
+          self.app.push_screen([m
+              PassphraseModal([m
+                  title=f"Passphrase for: {signer_info.name} <{signer_info.key_id}>"[m
+              ),[m
+!             callback=self._on_clearsign_pass,[m
+          )[m
+  [m
+      def _on_clearsign_pass(self, result: PassphraseResult) -> None:[m
+***************
+*** 758,796 ****
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase - assuming key has no passphrase.",[m
+!                 level="WARN"[m
+              )[m
+  [m
+          self.run_worker([m
+              self._worker_clearsign([m
+!                 pending["message"],[m
+!                 pending["sign_fp"],[m
+!                 result.passphrase[m
+              ),[m
+!             thread=True,[m
+!             name="clearsign"[m
+          )[m
+  [m
+      async def _worker_clearsign([m
+!         self,[m
+!         message: str,[m
+!         sign_fp: str,[m
+!         passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             clearsign,[m
+!             self.gpg,[m
+!             message,[m
+!             sign_fp,[m
+!             passphrase=passphrase[m
+          )[m
+!         self.app.call_from_thread(self._finish_clearsign, result)[m
+  [m
+!     def _finish_clearsign(self, result: str | None) -> None:[m
+          self._log.log_result(ok=result is not None, label="clearsign")[m
+          self._write_output(result)[m
+  [m
+      def _run_verify_clearsign(self) -> None:[m
+          signed_msg = self._get_input_str()[m
+          if signed_msg is None:[m
+--- 663,700 ----
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase — assuming key has no passphrase.", level="WARN",[m
+              )[m
+  [m
+[32m+         self._store_cached(pending["sign_fp"], result.passphrase)[m
+          self.run_worker([m
+              self._worker_clearsign([m
+!                 pending["message"], pending["sign_fp"], result.passphrase,[m
+              ),[m
+!             thread=True, name="clearsign",[m
+          )[m
+  [m
+      async def _worker_clearsign([m
+!         self, message: str, sign_fp: str, passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             clearsign, self.gpg, message, sign_fp, passphrase=passphrase,[m
+          )[m
+!         self.app.call_from_thread(self._finish_clearsign, result, sign_fp)[m
+  [m
+!     def _finish_clearsign(self, result: str | None, sign_fp: str) -> None:[m
+!         if result is None and self._get_cached(sign_fp):[m
+!             self._evict_cached(sign_fp)[m
+!             self._log.log([m
+!                 "Cached passphrase may be wrong — evicted.", level="WARN",[m
+!             )[m
+          self._log.log_result(ok=result is not None, label="clearsign")[m
+          self._write_output(result)[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 5: Verify clearsign  (no key / passphrase)[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_verify_clearsign(self) -> None:[m
+          signed_msg = self._get_input_str()[m
+          if signed_msg is None:[m
+***************
+*** 798,805 ****
+          self._log.log_separator("Verify clearsign")[m
+          self.run_worker([m
+              self._worker_verify_clearsign(signed_msg),[m
+!             thread=True,[m
+!             name="verify_clearsign"[m
+          )[m
+  [m
+      async def _worker_verify_clearsign(self, signed_msg: str) -> None:[m
+--- 702,708 ----
+          self._log.log_separator("Verify clearsign")[m
+          self.run_worker([m
+              self._worker_verify_clearsign(signed_msg),[m
+!             thread=True, name="verify_clearsign",[m
+          )[m
+  [m
+      async def _worker_verify_clearsign(self, signed_msg: str) -> None:[m
+***************
+*** 810,819 ****
+          self._log.log_result([m
+              ok=vr.valid,[m
+              label="verify_clearsign",[m
+!             detail=str(vr) if vr.valid else f"status: {vr.status}"[m
+          )[m
+          self._write_output(str(vr))[m
+  [m
+      def _run_sign_detached(self) -> None:[m
+          message = self._get_input_bytes()[m
+          if message is None:[m
+--- 713,726 ----
+          self._log.log_result([m
+              ok=vr.valid,[m
+              label="verify_clearsign",[m
+!             detail=str(vr) if vr.valid else f"status: {vr.status}",[m
+          )[m
+          self._write_output(str(vr))[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 6: Detached sign  (fingerprint known — cache applies)[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_sign_detached(self) -> None:[m
+          message = self._get_input_bytes()[m
+          if message is None:[m
+***************
+*** 822,848 ****
+          signer_info = self._get_cursor_key()[m
+          if signer_info is None:[m
+              self._log.log([m
+!                 "Move the cursor to your signing key (arrow keys).",[m
+!                 level="WARN"[m
+              )[m
+              return[m
+          if not signer_info.has_secret:[m
+              self._log.log([m
+                  f"No secret key for {signer_info.name} ({signer_info.key_id}).",[m
+!                 level="ERR"[m
+              )[m
+              return[m
+          [m
+          self._log.log_separator(f"Detached Sign  [signer: {signer_info.key_id}]")[m
+          self._pending = {[m
+              "message": message,[m
+              "sign_fp": signer_info.fingerprint,[m
+          }[m
+          self.app.push_screen([m
+              PassphraseModal([m
+                  title=f"Passphrase for: {signer_info.name} <{signer_info.key_id}>"[m
+              ),[m
+!             callback=self._on_detached_sign_pass[m
+          )[m
+  [m
+      def _on_detached_sign_pass(self, result: PassphraseResult) -> None:[m
+--- 729,765 ----
+          signer_info = self._get_cursor_key()[m
+          if signer_info is None:[m
+              self._log.log([m
+!                 "Move the cursor to your signing key (arrow keys).", level="WARN",[m
+              )[m
+              return[m
+          if not signer_info.has_secret:[m
+              self._log.log([m
+                  f"No secret key for {signer_info.name} ({signer_info.key_id}).",[m
+!                 level="ERR",[m
+              )[m
+              return[m
+  [m
+          self._log.log_separator(f"Detached Sign  [signer: {signer_info.key_id}]")[m
+[32m+ [m
+[32m+         cached = self._get_cached(signer_info.fingerprint)[m
+[32m+         if cached is not None:[m
+[32m+             self._log_cache_hit(signer_info.key_id)[m
+              self._pending = {[m
+                  "message": message,[m
+                  "sign_fp": signer_info.fingerprint,[m
+              }[m
+[32m+             self.run_worker([m
+[32m+                 self._worker_sign_detached(message, signer_info.fingerprint, cached),[m
+[32m+                 thread=True, name="sign_detached",[m
+[32m+             )[m
+[32m+             return[m
+[32m+ [m
+[32m+         self._pending = {"message": message, "sign_fp": signer_info.fingerprint}[m
+          self.app.push_screen([m
+              PassphraseModal([m
+                  title=f"Passphrase for: {signer_info.name} <{signer_info.key_id}>"[m
+              ),[m
+!             callback=self._on_detached_sign_pass,[m
+          )[m
+  [m
+      def _on_detached_sign_pass(self, result: PassphraseResult) -> None:[m
+***************
+*** 854,893 ****
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase - assuming key has no passphrase.",[m
+!                 level="WARN"[m
+              )[m
+  [m
+          self.run_worker([m
+              self._worker_sign_detached([m
+!                 pending["message"],[m
+!                 pending["sign_fp"],[m
+!                 result.passphrase[m
+              ),[m
+!             thread=True,[m
+!             name="sign_detached"[m
+          )[m
+  [m
+      async def _worker_sign_detached([m
+!         self,[m
+!         message: bytes,[m
+!         sign_fp: str,[m
+!         passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             sign_detached,[m
+!             self.gpg,[m
+!             message,[m
+!             sign_fp,[m
+!             passphrase=passphrase,[m
+!             armor=True[m
+          )[m
+!         self.app.call_from_thread(self._finish_sign_detached, result)[m
+  [m
+!     def _finish_sign_detached(self, result: str | bytes | None) -> None:[m
+          self._log.log_result(ok=result is not None, label="sign_detached")[m
+          self._write_output(result)[m
+  [m
+      def _run_verify_detached(self) -> None:[m
+          message = self._get_input_bytes()[m
+          if message is None:[m
+--- 771,811 ----
+              return[m
+          if result.was_empty:[m
+              self._log.log([m
+!                 "Empty passphrase — assuming key has no passphrase.", level="WARN",[m
+              )[m
+  [m
+[32m+         self._store_cached(pending["sign_fp"], result.passphrase)[m
+          self.run_worker([m
+              self._worker_sign_detached([m
+!                 pending["message"], pending["sign_fp"], result.passphrase,[m
+              ),[m
+!             thread=True, name="sign_detached",[m
+          )[m
+  [m
+      async def _worker_sign_detached([m
+!         self, message: bytes, sign_fp: str, passphrase: str | None[m
+      ) -> None:[m
+          result = await asyncio.to_thread([m
+!             sign_detached, self.gpg, message, sign_fp,[m
+!             passphrase=passphrase, armor=True,[m
+          )[m
+!         self.app.call_from_thread(self._finish_sign_detached, result, sign_fp)[m
+  [m
+!     def _finish_sign_detached([m
+!         self, result: str | bytes | None, sign_fp: str[m
+!     ) -> None:[m
+!         if result is None and self._get_cached(sign_fp):[m
+!             self._evict_cached(sign_fp)[m
+!             self._log.log([m
+!                 "Cached passphrase may be wrong — evicted.", level="WARN",[m
+!             )[m
+          self._log.log_result(ok=result is not None, label="sign_detached")[m
+          self._write_output(result)[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Operation 7: Verify detached[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def _run_verify_detached(self) -> None:[m
+          message = self._get_input_bytes()[m
+          if message is None:[m
+***************
+*** 897,922 ****
+          if not sig_text:[m
+              self._log.log([m
+                  "Paste the detached .asc signature into the signature field.",[m
+!                 level="WARN"[m
+              )[m
+              return[m
+          self._log.log_separator("Verify Detached")[m
+          self.run_worker([m
+              self._worker_verify_detached(message, sig_text),[m
+!             thread=True,[m
+!             name="verify_detached"[m
+          )[m
+  [m
+      async def _worker_verify_detached([m
+!         self,[m
+!         message: bytes,[m
+!         signature: str[m
+      ) -> None:[m
+          vr = await asyncio.to_thread([m
+!             verify_detached,[m
+!             self.gpg,[m
+!             message,[m
+!             signature[m
+          )[m
+          self.app.call_from_thread(self._finish_verify_detached, vr)[m
+  [m
+--- 815,834 ----
+          if not sig_text:[m
+              self._log.log([m
+                  "Paste the detached .asc signature into the signature field.",[m
+!                 level="WARN",[m
+              )[m
+              return[m
+          self._log.log_separator("Verify Detached")[m
+          self.run_worker([m
+              self._worker_verify_detached(message, sig_text),[m
+!             thread=True, name="verify_detached",[m
+          )[m
+  [m
+      async def _worker_verify_detached([m
+!         self, message: bytes, signature: str[m
+      ) -> None:[m
+          vr = await asyncio.to_thread([m
+!             verify_detached, self.gpg, message, signature,[m
+          )[m
+          self.app.call_from_thread(self._finish_verify_detached, vr)[m
+  [m
+***************
+*** 924,937 ****
+          self._log.log_result([m
+              ok=vr.valid,[m
+              label="verify_detached",[m
+!             detail=str(vr) if vr.valid else f"status: {vr.status}"[m
+          )[m
+          self._write_output(str(vr))[m
+  [m
+      def action_copy_output(self) -> None:[m
+          text = self._output.text.strip()[m
+          if not text:[m
+!             self._log.log("Output is empty - nothing to copy.", level="WARN")[m
+              return[m
+          try:[m
+              import pyperclip[m
+--- 836,853 ----
+          self._log.log_result([m
+              ok=vr.valid,[m
+              label="verify_detached",[m
+!             detail=str(vr) if vr.valid else f"status: {vr.status}",[m
+          )[m
+          self._write_output(str(vr))[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Clipboard / log / focus[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      def action_copy_output(self) -> None:[m
+          text = self._output.text.strip()[m
+          if not text:[m
+!             self._log.log("Output is empty — nothing to copy.", level="WARN")[m
+              return[m
+          try:[m
+              import pyperclip[m
+***************
+*** 940,946 ****
+          except ImportError:[m
+              self._log.log([m
+                  "pyperclip not installed. `pip install pyperclip` to enable.",[m
+!                 level="WARN"[m
+              )[m
+          except Exception as exc:[m
+              self._log.log(f"Clipboard error: {exc}", level="ERR")[m
+--- 856,862 ----
+          except ImportError:[m
+              self._log.log([m
+                  "pyperclip not installed. `pip install pyperclip` to enable.",[m
+!                 level="WARN",[m
+              )[m
+          except Exception as exc:[m
+              self._log.log(f"Clipboard error: {exc}", level="ERR")[m
+***************
+*** 964,969 ****
+--- 880,889 ----
+      def action_go_home(self) -> None:[m
+          self.app.pop_screen()[m
+  [m
+[32m+     # ------------------------------------------------------------------[m
+[32m+     # Properties[m
+[32m+     # ------------------------------------------------------------------[m
+[32m+ [m
+      @property[m
+      def _log(self) -> OperationLogWidget:[m
+          return self.query_one("#ed-op-log", OperationLogWidget)[m
+***************
+*** 975,1849 ****
+      @property[m
+      def _output(self) -> TextArea:[m
+          return self.query_one("#ed-output", TextArea)[m
+[31m-     [m
+[31m-     [m
+[31m- [m
+[31m- [m
+[31m- # """[m
+[31m- # screens/encrypt_decrypt.py[m
+[31m- # --------------------------[m
+[31m- # EncryptDecryptScreen - the cryptographic operations interface.[m
+[31m- [m
+[31m- # Layout[m
+[31m- # ------[m
+[31m- #     ┌─────────────────────────────────────────────────────┐[m
+[31m- #     │  Header                                             │[m
+[31m- #     ├─────────────────────────────┬───────────────────────┤[m
+[31m- #     │  #ed-left (Vertical, 60%)   │  #ed-right (40%)      │[m
+[31m- #     │                             │                       │[m
+[31m- #     │  Mode selector (RadioSet)   │  KeyListWidget        │[m
+[31m- #     │  ─────────────────────────  │  (recipient /         │[m
+[31m- #     │  Input toggle (text/file)   │   signer picker)      │[m
+[31m- #     │  TextArea  OR  Input path   │                       │[m
+[31m- #     │  ─────────────────────────  │                       │[m
+[31m- #     │  Options bar (sign toggle,  │                       │[m
+[31m- #     │  armor toggle)              │                       │[m
+[31m- #     │  [Run] button               │                       │[m
+[31m- #     │  ─────────────────────────  │                       │[m
+[31m- #     │  Output TextArea (r/o)      │                       │[m
+[31m- #     ├─────────────────────────────┴───────────────────────┤[m
+[31m- #     │  OperationLogWidget (full width, fixed height)      │[m
+[31m- #     ├─────────────────────────────────────────────────────┤[m
+[31m- #     │  Footer                                             │[m
+[31m- #     └─────────────────────────────────────────────────────┘[m
+[31m- [m
+[31m- # Operations[m
+[31m- # ----------[m
+[31m- #     1   Encrypt to recipients   -> encrypt_to_recipients()[m
+[31m- #     2   Symmetric encrypt       -> encrypt_symmetric()  + PassphraseModal[m
+[31m- #     3   Decrypt                 -> decrypt_data()       (auto-detect asym/sym)[m
+[31m- #     4   Clearsign               -> clearsign()[m
+[31m- #     5   Verify clearsign        -> verify_clearsign()   [m
+[31m- #     6   Detached sign           -> sign_detached()[m
+[31m- #     7   Verify detached         -> verify_detached()    (sig pasted separately)[m
+[31m-     [m
+[31m- # Input modes[m
+[31m- # -----------[m
+[31m- #     Text  - paste / type directly into a TextArea[m
+[31m- #     File  - enter a file path; content is read before the GPG call[m
+[31m-     [m
+[31m- # Key bindings[m
+[31m- # ------------[m
+[31m- #     1-7     Select operation mode[m
+[31m- #     Enter   Run the current operation (when not in a TextArea)[m
+[31m- #     X       Run (explicit, works from anywhere)[m
+[31m- #     C       Copy output to clipboard[m
+[31m- #     S       Save log[m
+[31m- #     Tab     Cycle focus: input -> key list -> output[m
+[31m- #     Q       Back to home[m
+[31m-     [m
+[31m- # Threading[m
+[31m- # ---------[m
+[31m- #     All GPG calls run in thread workers via asyncio.to_thread().[m
+[31m- #     Output is written back to the main thread via call_from_thread().[m
+[31m- # """[m
+[31m- [m
+[31m- # from __future__ import annotations[m
+[31m- [m
+[31m- # import asyncio[m
+[31m- # from pathlib import Path[m
+[31m- [m
+[31m- # from textual.app import ComposeResult[m
+[31m- # from textual.binding import Binding[m
+[31m- # from textual.containers import Horizontal, Vertical, Container[m
+[31m- # from textual.screen import Screen[m
+[31m- # from textual.widgets import ([m
+[31m- #     Button,[m
+[31m- #     Checkbox,[m
+[31m- #     Footer,[m
+[31m- #     Header,[m
+[31m- #     Input,[m
+[31m- #     Label,[m
+[31m- #     RadioButton,[m
+[31m- #     RadioSet,[m
+[31m- #     Static,[m
+[31m- #     TextArea[m
+[31m- # )[m
+[31m- [m
+[31m- # from partizan_gpg.cipherlib import ([m
+[31m- #     clearsign,[m
+[31m- #     decrypt_data,[m
+[31m- #     encrypt_symmetric,[m
+[31m- #     encrypt_to_recipients,[m
+[31m- #     sign_detached,[m
+[31m- #     verify_clearsign,[m
+[31m- #     verify_detached[m
+[31m- # )[m
+[31m- # from partizan_gpg.tui.widgets.key_list import KeyInfo, KeyListWidget[m
+[31m- # from partizan_gpg.tui.widgets.operation_log import OperationLogWidget[m
+[31m- # from partizan_gpg.tui.widgets.passphrase_modal import PassphraseModal, PassphraseResult[m
+[31m- [m
+[31m- [m
+[31m- # _MODES: list[tuple[str, str, bool, bool]] = [[m
+[31m- #     ("1. Encrypt → recipients", "1", True, False),[m
+[31m- #     ("2. Symmetric encrypt", "2", False, False),[m
+[31m- #     ("3. Decrypt", "3", False, False),[m
+[31m- #     ("4. Clearsign", "4", False, False),[m
+[31m- #     ("5. Verify clearsign", "5", False, False),[m
+[31m- #     ("6. Detached sign", "6", False, False),[m
+[31m- #     ("7. Verify detached", "7", False, False),[m
+[31m- # ][m
+[31m- [m
+[31m- # _MODE_LABELS = [m[0] for m in _MODES][m
+[31m- # _MODE_KEYS = [m[1] for m in _MODES][m
+[31m- # _MODE_NEEDS_RECIPIENTS = [m[2] for m in _MODES][m
+[31m- # _MODE_NEEDS_SIG = [m[3] for m in _MODES][m
+[31m- [m
+[31m- [m
+[31m- # _CSS_DIR = Path(__file__).parent.parent / "css"[m
+[31m- [m
+[31m- [m
+[31m- # class EncryptDecryptScreen(Screen):[m
+[31m- #     """[m
+[31m- #     Cryptographic operations interface.[m
+[31m-     [m
+[31m- #     Receives the shared GPG instance from GPGApp via the constructor.[m
+[31m- #     Never constructs its own GPG instance.[m
+[31m- #     """[m
+[31m- [m
+[31m- #     TITLE = "Encrypt / Decrypt"[m
+[31m- [m
+[31m- #     CSS_PATH = [[m
+[31m- #         str(_CSS_DIR / "key_list.tcss"),[m
+[31m- #         str(_CSS_DIR / "encrypt_decrypt.tcss"),[m
+[31m- #     ][m
+[31m- [m
+[31m- #     BINDINGS = [[m
+[31m- #         Binding("1", "set_mode('0')", "Encrypt→recip.", show=False),[m
+[31m- #         Binding("2", "set_mode('1')", "Sym. encrypt", show=False),[m
+[31m- #         Binding("3", "set_mode('2')", "Decrypt", show=False),[m
+[31m- #         Binding("4", "set_mode('3')", "Clearsign", show=False),[m
+[31m- #         Binding("5", "set_mode('4')", "Verify clr.", show=False),[m
+[31m- #         Binding("6", "set_mode('5')", "Det. sign", show=False),[m
+[31m- #         Binding("7", "set_mode('6')", "Verify det.", show=False),[m
+[31m- #         Binding("x", "run_operation", "Run", show=True),[m
+[31m- #         Binding("c", "copy_output", "Copy output", show=True),[m
+[31m- #         Binding("s", "save_log", "Save log", show=True),[m
+[31m- #         Binding("tab", "cycle_focus", "Switch pane", show=True),[m
+[31m- #         Binding("q", "go_home", "Home", show=True),[m
+[31m- #     ][m
+[31m- [m
+[31m- #     def __init__(self, gpg, **kwargs) -> None:[m
+[31m- #         super().__init__(**kwargs)[m
+[31m- #         self.gpg = gpg[m
+[31m- #         self._mode_idx = 0[m
+[31m- #         self._input_mode = "text"[m
+[31m- #         self._pending_dict = None[m
+[31m- [m
+[31m- #     def compose(self) -> ComposeResult:[m
+[31m- #         yield Header()[m
+[31m- [m
+[31m- #         with Horizontal(id="ed-main"):[m
+[31m- #             with Vertical(id="ed-left"):[m
+[31m- #                 yield Label("Operation", classes="ed-section-label")[m
+[31m- #                 with RadioSet(id="ed-mode-set"):[m
+[31m- #                     for label in _MODE_LABELS:[m
+[31m- #                         yield RadioButton(label)[m
+[31m- [m
+[31m- #                 yield Label("Input", classes="ed-section-label")[m
+[31m- #                 with Horizontal(id="ed-input-toggle"):[m
+[31m- #                     yield Button("Text", id="ed-btn-text", variant="primary")[m
+[31m- #                     yield Button("File path", id="ed-btn-file", variant="default")[m
+[31m- [m
+[31m- #                 yield TextArea([m
+[31m- #                     "",[m
+[31m- #                     id="ed-input-text",[m
+[31m- #                     show_line_numbers=False[m
+[31m- #                 )[m
+[31m- [m
+[31m- #                 yield Input([m
+[31m- #                     placeholder="Absolute or relative file path...",[m
+[31m- #                     id="ed-input-file"[m
+[31m- #                 )[m
+[31m- [m
+[31m- #                 yield Label([m
+[31m- #                     "Detached signature [i](paste [b].asc[/b] content)[/i]:",[m
+[31m- #                     id="ed-sig-label",[m
+[31m- #                     classes="ed-section-label",[m
+[31m- #                     markup=True[m
+[31m- #                 )[m
+[31m- #                 yield TextArea([m
+[31m- #                     "",[m
+[31m- #                     id="ed-sig-text",[m
+[31m- #                     show_line_numbers=False[m
+[31m- #                 )[m
+[31m- [m
+[31m- #                 with Horizontal(id="ed-options"):[m
+[31m- #                     yield Checkbox("Sign while encrypting", id="ed-opt-sign")[m
+[31m- #                     yield Checkbox("ASCII armor output", id="ed-opt-armor", value=True)[m
+[31m- [m
+[31m- #                 yield Static([m
+[31m- #                     "  Signing key: select in the key list →",[m
+[31m- #                     id="ed-sign-hint"[m
+[31m- #                 )[m
+[31m- [m
+[31m- #                 yield Button("▶  Run", variant="primary", id="ed-run-btn")[m
+[31m- [m
+[31m- #                 yield Label("Output", classes="ed-section-label")[m
+[31m- #                 yield TextArea([m
+[31m- #                     "",[m
+[31m- #                     id="ed-output",[m
+[31m- #                     show_line_numbers=False[m
+[31m- #                 )[m
+[31m- [m
+[31m- #             with Vertical(id="ed-right"):[m
+[31m- #                 yield Label([m
+[31m- #                     "[u]Keys[/u]  [i]([b]Space[/b] = select recipient / signer)[/i]",[m
+[31m- #                     classes="ed-section-label",[m
+[31m- #                     markup=True[m
+[31m- #                 )[m
+[31m- #                 yield KeyListWidget(gpg=self.gpg, id="ed-key-list")[m
+[31m- #                 yield Static("", id="ed-selection-status", markup=True)[m
+[31m- [m
+[31m- #         yield OperationLogWidget(id="ed-op-log")[m
+[31m- #         yield Footer()[m
+[31m- [m
+[31m- #     def on_mount(self) -> None:[m
+[31m- #         self._log.clear()[m
+[31m- #         self._log.log_separator("Encrypt / Decrypt")[m
+[31m- #         self._log.log(f"Keyring: {self.gpg.gnupghome}", level="INFO")[m
+[31m- #         self._apply_mode(0)[m
+[31m- #         self._apply_input_mode("text")[m
+[31m- [m
+[31m- #         self._output.read_only = True[m
+[31m- #         self.query_one("#ed-mode-set", RadioSet).focus()[m
+[31m- [m
+[31m- #     def on_screem_resume(self) -> None:[m
+[31m- #         self._log.clear()[m
+[31m- #         self._log.log_separator("Encrypt / Decrypt")[m
+[31m- #         self._key_list.refresh_keys(self.gpg)[m
+[31m- #         self._apply_mode(self._mode_idx)[m
+[31m- [m
+[31m- #     def on_radio_set_changed(self, event: RadioSet.Changed) -> None:[m
+[31m- #         """Mode radio changed - update UI."""[m
+[31m- #         self._apply_mode(event.radio_set.pressed_index)[m
+[31m- [m
+[31m- #     def action_set_mode(self, idx_str: str) -> None:[m
+[31m- #         """Keyboard shortcuts 1-7 select a mode."""[m
+[31m- #         idx = int(idx_str)[m
+[31m- #         radio_set = self.query_one("#ed-mode-set", RadioSet)[m
+[31m- [m
+[31m- #         try:[m
+[31m- #             buttons = list(radio_set.query(RadioButton))[m
+[31m- #             if 0 <= idx < len(buttons):[m
+[31m- #                 buttons[idx].value = True[m
+[31m- #         except Exception:[m
+[31m- #             pass[m
+[31m- #         self._apply_mode(idx)[m
+[31m- [m
+[31m- #     def _apply_mode(self, idx: int) -> None:[m
+[31m- #         """Show/hide UI sections based on the selected operation mode."""[m
+[31m- #         self._mode_idx = idx[m
+[31m- [m
+[31m- #         needs_recip = _MODE_NEEDS_RECIPIENTS[idx][m
+[31m- #         needs_sig = _MODE_NEEDS_SIG[idx][m
+[31m- [m
+[31m- #         sign_cb = self.query_one("#ed-opt-sign", Checkbox)[m
+[31m- #         sign_cb.display = (idx == 0)[m
+[31m- [m
+[31m- #         sign_hint = self.query_one("#ed-sign-hint", Static)[m
+[31m- #         sign_hint.display = (idx == 0 and sign_cb.value)[m
+[31m- [m
+[31m- #         sig_label = self.query_one("#ed-sig-label", Label)[m
+[31m- #         sig_text = self.query_one("#ed-sig-text", TextArea)[m
+[31m- #         sig_label.display = needs_sig[m
+[31m- #         sig_text.display = needs_sig[m
+[31m- [m
+[31m- #         key_label = self.query_one("#ed-right .ed-section-label", Label)[m
+[31m- #         if needs_recip:[m
+[31m- #             key_label.update([m
+[31m- #                 "[u]Recipients[/u]  [i]([b]Space[/b] = select, [b]Esc[/b] = clear)[/i]"[m
+[31m- #             )[m
+[31m- #         elif idx in (3, 5):[m
+[31m- #             key_label.update([m
+[31m- #                 "[u]Signing key[/u]  [i]([b]Space[/b] = select ONE key)[/i]"[m
+[31m- #             )[m
+[31m- #         else:[m
+[31m- #             key_label.update([m
+[31m- #                 "[u]Keys[/u]  [i](reference only)[/i]"[m
+[31m- #             )[m
+[31m-         [m
+[31m- #         self._output.clear()[m
+[31m- #         self._log.log(f"Mode -> {_MODE_LABELS[idx]}", level="INFO")[m
+[31m- [m
+[31m- #     def on_button_pressed(self, event: Button.Pressed) -> None:[m
+[31m- #         bid = event.button.id[m
+[31m- #         if bid == "ed-btn-text":[m
+[31m- #             self._apply_input_mode("text")[m
+[31m- #         elif bid == "ed-btn-file":[m
+[31m- #             self._apply_input_mode("file")[m
+[31m- #         elif bid == "ed-run-btn":[m
+[31m- #             self.action_run_operation()[m
+[31m- [m
+[31m- #     def _apply_input_mode(self, mode: str) -> None:[m
+[31m- #         self._input_mode = mode[m
+[31m- #         text_area = self.query_one("#ed-input-text", TextArea)[m
+[31m- #         file_input = self.query_one("#ed-input-file", Input)[m
+[31m- #         btn_text = self.query_one("#ed-btn-text", Button)[m
+[31m- #         btn_file = self.query_one("#ed-btn-file", Button)[m
+[31m- [m
+[31m- #         text_area.display = (mode == "text")[m
+[31m- #         file_input.display = (mode == "file")[m
+[31m- [m
+[31m- #         btn_text.variant = "primary" if mode == "text" else "default"[m
+[31m- #         btn_file.variant = "primary" if mode == "file" else "default"[m
+[31m- [m
+[31m- #     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:[m
+[31m- #         if event.checkbox.id == "ed-opt-sign":[m
+[31m- #             hint = self.query_one("#ed-sign-hint", Static)[m
+[31m- #             hint.display = bool(event.value) and self._mode_idx == 0[m
+[31m- [m
+[31m- #     def on_key_list_widget_selection_changed([m
+[31m- #         self,[m
+[31m- #         event: KeyListWidget.SelectionChanged[m
+[31m- #     ) -> None:[m
+[31m- #         n = len(event.fingerprints)[m
+[31m- #         status = self.query_one("#ed-selection-status", Static)[m
+[31m- #         if n == 0:[m
+[31m- #             status.update("")[m
+[31m- #         elif self._mode_idx in (3, 5):[m
+[31m- #             status.update([m
+[31m- #                 f"  ✦ {n} signing key selected"[m
+[31m- #                 if n == 1[m
+[31m- #                 else f"  ⚠ Select exactly ONE signing key [i]({n} selected)[/i]"[m
+[31m- #             )[m
+[31m- #         else:[m
+[31m- #             status.update(f"  ✦ {n} recipient(s) selected")[m
+[31m- [m
+[31m- #     def action_run_operation(self) -> None:[m
+[31m- #         """Dispatch the correct operation based on current mode."""[m
+[31m- #         dispatch = {[m
+[31m- #             0: self._run_encrypt_recipients,[m
+[31m- #             1: self._run_encrypt_symmetric,[m
+[31m- #             2: self._run_decrypt,[m
+[31m- #             3: self._run_clearsign,[m
+[31m- #             4: self._run_verify_clearsign,[m
+[31m- #             5: self._run_sign_detached,[m
+[31m- #             6: self._run_verify_detached,[m
+[31m- #         }[m
+[31m- #         fn = dispatch.get(self._mode_idx)[m
+[31m- #         if fn:[m
+[31m- #             fn()[m
+[31m- [m
+[31m- #     def _get_input_bytes(self) -> bytes | None:[m
+[31m- #         """[m
+[31m- #         Read the current input as bytes - either from the TextArea or by[m
+[31m- #         reading the file at the given path.[m
+[31m- #         Returns None and logs an error if the input is empty or file is missing.[m
+[31m- #         """[m
+[31m- #         if self._input_mode == "text":[m
+[31m- #             text = self.query_one("#ed-input-text", TextArea).text.strip()[m
+[31m- #             if not text:[m
+[31m- #                 self._log.log("Input is empty.", level="WARN")[m
+[31m- #                 return None[m
+[31m- #             return text.encode("utf-8")[m
+[31m- #         else:[m
+[31m- #             path_str = self.query_one("#ed-input-file", Input).value.strip()[m
+[31m- [m
+[31m- #             if not path_str:[m
+[31m- #                 # self._log.log(f"File not found: {path}")[m
+[31m- #                 self._log.log("No file path entered.", level="WARN")[m
+[31m- #                 return None[m
+[31m- #             path = Path(path_str)[m
+[31m- #             if not path.exists():[m
+[31m- #                 self._log.log(f"File not found: {path}", level="ERR")[m
+[31m- #                 return None[m
+[31m- #             try:[m
+[31m- #                 return path.read_bytes()[m
+[31m- #             except OSError as exc:[m
+[31m- #                 self._log.log(f"Cannot read file: {exc}", level="ERR")[m
+[31m- #                 return None[m
+[31m-             [m
+[31m- #     def _get_input_str(self) -> str | None:[m
+[31m- #         """[m
+[31m- #         Like `_get_input_bytes` but returns a decoded string.[m
+[31m- #         """[m
+[31m- #         raw = self._get_input_bytes()[m
+[31m- #         if raw is None:[m
+[31m- #             return None[m
+[31m- #         try:[m
+[31m- #             return raw.decode("utf-8")[m
+[31m- #         except UnicodeDecodeError:[m
+[31m- #             self._log.log([m
+[31m- #                 "Input is not a valid UTF-8 text.",[m
+[31m- #                 level="ERR"[m
+[31m- #             )[m
+[31m- #             return None[m
+[31m-         [m
+[31m- #     def _get_selected_fingerprints(self) -> list[str]:[m
+[31m- #         return list(self._key_list.get_selected())[m
+[31m-     [m
+[31m- #     def _get_single_signing_key(self) -> str | None:[m
+[31m- #         fps = self._get_selected_fingerprints()[m
+[31m- #         if len(fps) != 1:[m
+[31m- #             self._log.log([m
+[31m- #                 f"Select exactly ONE signing key ({len(fps)} selected).",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #             return None[m
+[31m- #         return fps[0][m
+[31m-     [m
+[31m- #     def _armor_requested(self) -> bool:[m
+[31m- #         return bool(self.query_one("#ed-opt-armor", Checkbox).value)[m
+[31m-     [m
+[31m- #     def _write_output(self, data: str | bytes | None) -> None:[m
+[31m- #         """Put data in to the read-only output TextArea."""[m
+[31m- #         out = self._output[m
+[31m- #         out.clear()[m
+[31m- #         if data is None:[m
+[31m- #             return[m
+[31m- #         if isinstance(data, bytes):[m
+[31m- #             try:[m
+[31m- #                 text = data.decode("utf-8")[m
+[31m- #             except UnicodeDecodeError:[m
+[31m- #                 text = f"<binary output - {len(data)} bytes>\n" \[m
+[31m- #                 "(Use file-path mode and check output file)"[m
+[31m-             [m
+[31m- #         else:[m
+[31m- #             text = data[m
+[31m- #         out.load_text(text)[m
+[31m- [m
+[31m- #     def _run_encrypt_recipients(self) -> None:[m
+[31m- #         plaintext = self._get_input_bytes()[m
+[31m- #         if plaintext is None:[m
+[31m- #             return[m
+[31m- #         recipients = self._get_selected_fingerprints()[m
+[31m- #         if not recipients:[m
+[31m- #             self._log.log([m
+[31m- #                 "Select at least one recipient in the key list (Spce).",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #             return[m
+[31m- #         armor = self._armor_requested()[m
+[31m- #         sign_fp = None[m
+[31m- #         self._log.log_separator(f"Encrypt -> {len(recipients)} recipient(s)")[m
+[31m- #         if self.query_one("#ed-opt-sign", Checkbox).value:[m
+[31m- #             sign_fp = self._get_single_signing_key()[m
+[31m- #             if sign_fp is None:[m
+[31m- #                 return[m
+[31m- #             self._pending_dict = {[m
+[31m- #                 "plaintext": plaintext,[m
+[31m- #                 "recipients": recipients,[m
+[31m- #                 "armor": armor,[m
+[31m- #                 "sign_fp": sign_fp[m
+[31m- #             }[m
+[31m- #             self.app.push_screen([m
+[31m- #                 PassphraseModal(title=f"Passphrase for signing key: <{sign_fp[-16:]}>"),[m
+[31m- #                 callback=self._on_encrypt_pass[m
+[31m- #             )[m
+[31m- #         else:[m
+[31m- #             self.run_worker([m
+[31m- #                 self._worker_encrypt_recipients([m
+[31m- #                     plaintext,[m
+[31m- #                     recipients,[m
+[31m- #                     armor,[m
+[31m- #                     sign_fp=None,[m
+[31m- #                     passphrase=None[m
+[31m- #                 ),[m
+[31m- #                 thread=True,[m
+[31m- #                 name="encrypt_recipients"[m
+[31m- #             )[m
+[31m-     [m
+[31m- #     def _on_encrypt_pass(self, result: PassphraseResult):[m
+[31m- #         _pending = self._pending_dict[m
+[31m- #         self._pending_dict = None[m
+[31m- #         if result.cancelled:[m
+[31m- #             self._log.log([m
+[31m- #                 "Encrypt w/ sign cancelled",[m
+[31m- #                 level="INFO"[m
+[31m- #             )[m
+[31m- #             return[m
+[31m- #         if result.was_empty:[m
+[31m- #             self._log.log([m
+[31m- #                 "Empty passphrase - assuming signing key has no passphrase.",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_encrypt_recipients([m
+[31m- #                 _pending["plaintext"],[m
+[31m- #                 _pending["recipients"],[m
+[31m- #                 _pending["armor"],[m
+[31m- #                 _pending["sign_fp"],[m
+[31m- #                 result.passphrase[m
+[31m- #             ),[m
+[31m- #             thread=True,[m
+[31m- #             name="encrypt_recipients"[m
+[31m- #         )[m
+[31m-             [m
+[31m- #     async def _worker_encrypt_recipients([m
+[31m- #         self,[m
+[31m- #         plaintext: bytes,[m
+[31m- #         recipients: list[str],[m
+[31m- #         armor: bool,[m
+[31m- #         sign_fp: str | None,[m
+[31m- #         passphrase: str | None[m
+[31m- #     ) -> None:[m
+[31m- #         result = await asyncio.to_thread([m
+[31m- #             encrypt_to_recipients,[m
+[31m- #             self.gpg,[m
+[31m- #             plaintext,[m
+[31m- #             recipients,[m
+[31m- #             armor=armor,[m
+[31m- #             sign=sign_fp,[m
+[31m- #             passphrase=passphrase,[m
+[31m- #             always_trust=True[m
+[31m- #         )[m
+[31m- #         self.app.call_from_thread([m
+[31m- #             self._finish_encrypt_recipients,[m
+[31m- #             result,[m
+[31m- #             armor[m
+[31m- #         )[m
+[31m- [m
+[31m- #     def _finish_encrypt_recipients([m
+[31m- #         self,[m
+[31m- #         result: str | bytes | None,[m
+[31m- #         armor: bool[m
+[31m- #     ) -> None:[m
+[31m- #         ok = result is not None[m
+[31m- #         self._log.log_result([m
+[31m- #             ok=ok,[m
+[31m- #             label="encrypt_to_recipients",[m
+[31m- #             detail=f"{len(result)} chars" if ok and isinstance(result, str) \[m
+[31m- #                 else f"{len(result)} bytes" if ok else None[m
+[31m- #         )[m
+[31m- #         self._write_output(result)[m
+[31m- [m
+[31m- #     def _run_encrypt_symmetric(self) -> None:[m
+[31m- #         plaintext = self._get_input_bytes()[m
+[31m- #         if plaintext is None:[m
+[31m- #             return[m
+[31m- #         self._pending_sym_plaintext = plaintext[m
+[31m- #         self.app.push_screen([m
+[31m- #             PassphraseModal(title="Passphrase for symmetric encryption."),[m
+[31m- #             callback=self._on_sym_passphrase[m
+[31m- #         )[m
+[31m-         [m
+[31m- #     def _on_sym_passphrase(self, result: PassphraseResult) -> None:[m
+[31m- #         if result.cancelled:[m
+[31m- #             self._log.log("Symmetric encrypt cancelled.", level="INFO")[m
+[31m- #             return[m
+[31m- #         if result.was_empty:[m
+[31m- #             self._log.log([m
+[31m- #                 "Empty passphrase - symmetric encryption will use blank key.",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #         plaintext = getattr(self, "_pending_sym_plaintext", b"")[m
+[31m- #         armor = self._armor_requested()[m
+[31m- #         self._log.log_separator("Symmetric Encrypt")[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_encrypt_symmetric([m
+[31m- #                 plaintext,[m
+[31m- #                 result.passphrase or "",[m
+[31m- #                 armor[m
+[31m- #             ),[m
+[31m- #             thread=True,[m
+[31m- #             name="encrypt_symmetric"[m
+[31m- #         )[m
+[31m- [m
+[31m- #     async def _worker_encrypt_symmetric([m
+[31m- #         self,[m
+[31m- #         plaintext: bytes,[m
+[31m- #         passphrase: str,[m
+[31m- #         armor: bool[m
+[31m- #     ) -> None:[m
+[31m- #         result = await asyncio.to_thread([m
+[31m- #             encrypt_symmetric,[m
+[31m- #             self.gpg,[m
+[31m- #             plaintext,[m
+[31m- #             passphrase,[m
+[31m- #             armor=armor[m
+[31m- #         )[m
+[31m- #         self.app.call_from_thread(self._finish_encrypt_symmetric, result)[m
+[31m- [m
+[31m- #     def _finish_encrypt_symmetric(self, result: str | bytes | None) -> None:[m
+[31m- #         ok = result is not None[m
+[31m- #         self._log.log_result(ok=ok, label="encrypt_symmetric")[m
+[31m- #         self._write_output(result)[m
+[31m- [m
+[31m- #     def _run_decrypt(self) -> None:[m
+[31m- #         ciphertext = self._get_input_bytes()[m
+[31m- #         if ciphertext is None:[m
+[31m- #             return[m
+[31m-         [m
+[31m- #         self.app.push_screen([m
+[31m- #             PassphraseModal([m
+[31m- #                 title="Passphrase (leave blank for asymmetric decrypt)"[m
+[31m- #             ),[m
+[31m- #             callback=self._on_decrypt_passphrase[m
+[31m- #         )[m
+[31m- #         self._pending_ciphertext = ciphertext[m
+[31m- [m
+[31m- #     def _on_decrypt_passphrase(self, result: PassphraseResult) -> None:[m
+[31m- #         if result.cancelled:[m
+[31m- #             self._log.log("Decrypt cancelled.", level="INFO")[m
+[31m- #             return[m
+[31m- #         ciphertext = getattr(self, "_pending_ciphertext", b"")[m
+[31m- #         passphrase = result.passphrase if not result.was_empty else None[m
+[31m- #         self._log.log_separator("Decrypt")[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_decrypt(ciphertext, passphrase),[m
+[31m- #             thread=True,[m
+[31m- #             name="decrypt"[m
+[31m- #         )[m
+[31m- [m
+[31m- #     async def _worker_decrypt([m
+[31m- #         self,[m
+[31m- #         ciphertext: bytes,[m
+[31m- #         passphrase: str | None[m
+[31m- #     ) -> None:[m
+[31m- #         result = await asyncio.to_thread([m
+[31m- #             decrypt_data,[m
+[31m- #             self.gpg,[m
+[31m- #             ciphertext,[m
+[31m- #             passphrase=passphrase,[m
+[31m- #             always_trust=True[m
+[31m- #         )[m
+[31m- #         self.app.call_from_thread(self._finish_decrypt, result)[m
+[31m- [m
+[31m- #     def _finish_decrypt(self, result: bytes | None) -> None:[m
+[31m- #         ok = result is not None[m
+[31m- #         self._log.log_result([m
+[31m- #             ok=ok,[m
+[31m- #             label="decrypt_data",[m
+[31m- #             detail=f"{len(result)} bytes plaintext" if ok else None[m
+[31m- #         )[m
+[31m- #         self._write_output(result)[m
+[31m- #         self._pending_ciphertext = None[m
+[31m- [m
+[31m- #     def _run_clearsign(self) -> None:[m
+[31m- #         message = self._get_input_str()[m
+[31m- #         if message is None:[m
+[31m- #             return[m
+[31m- #         sign_fp = self._get_single_signing_key()[m
+[31m- #         if sign_fp is None:[m
+[31m- #             return[m
+[31m- #         self._log.log_separator("Clearsign")[m
+[31m- #         self._pending_message = message[m
+[31m- #         self._sign_fp = sign_fp[m
+[31m- #         self.app.push_screen([m
+[31m- #             PassphraseModal(title=f"Passphrase for signing key: <{sign_fp[-16:]}>"),[m
+[31m- #             callback=self._on_clearsign_pass[m
+[31m- #         )[m
+[31m- [m
+[31m- #     def _on_clearsign_pass(self, result: PassphraseResult) -> None:[m
+[31m- #         sign_fp = getattr(self, "_sign_fp", None)[m
+[31m- #         message = getattr(self, "_pending_message", None)[m
+[31m- #         self._sign_fp = None[m
+[31m- #         self._pending_message = None[m
+[31m- #         if sign_fp is None:[m
+[31m- #             return[m
+[31m- #         if message is None:[m
+[31m- #             return[m
+[31m- #         if result.cancelled:[m
+[31m- #             self._log.log([m
+[31m- #                 "Clearsign cancelled.",[m
+[31m- #                 level="INFO"[m
+[31m- #             )[m
+[31m- #             return[m
+[31m- #         if result.was_empty:[m
+[31m- #             self._log.log([m
+[31m- #                 "Empty passphrase - assuming signing key has no passphrase.",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_clearsign(message, sign_fp, result.passphrase),[m
+[31m- #             thread=True,[m
+[31m- #             name="clearsign"[m
+[31m- #         )[m
+[31m- [m
+[31m- #     async def _worker_clearsign(self, message: str, sign_fp: str, passphrase: str | None) -> None:[m
+[31m- #         result = await asyncio.to_thread([m
+[31m- #             clearsign,[m
+[31m- #             self.gpg,[m
+[31m- #             message,[m
+[31m- #             sign_fp,[m
+[31m- #             passphrase=passphrase[m
+[31m- #         )[m
+[31m- #         self.app.call_from_thread(self._finish_clearsign, result)[m
+[31m- [m
+[31m- #     def _finish_clearsign(self, result: str | None) -> None:[m
+[31m- #         ok = result is not None[m
+[31m- #         self._log.log_result(ok=ok, label="clearsign")[m
+[31m- #         self._write_output(result)[m
+[31m- [m
+[31m- #     def _run_verify_clearsign(self) -> None:[m
+[31m- #         signed_msg = self._get_input_str()[m
+[31m- #         if signed_msg is None:[m
+[31m- #             return[m
+[31m- #         self._log.log_separator("Verify clearsign")[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_verify_clearsign(signed_msg),[m
+[31m- #             thread=True,[m
+[31m- #             name="verify_clearsign"[m
+[31m- #         )[m
+[31m- [m
+[31m- #     async def _worker_verify_clearsign(self, signed_msg: str) -> None:[m
+[31m- #         from partizan_gpg.cipherlib import verify_clearsign as _verify_cs[m
+[31m- #         vr = await asyncio.to_thread(_verify_cs, self.gpg, signed_msg)[m
+[31m- #         self.app.call_from_thread(self._finish_verify_clearsign, vr)[m
+[31m-         [m
+[31m- #     def _finish_verify_clearsign(self, vr) -> None:[m
+[31m- #         self._log.log_result([m
+[31m- #             ok=vr.valid,[m
+[31m- #             label="verify_clearsign",[m
+[31m- #             detail=str(vr) if vr.valid else f"status: {vr.status}"[m
+[31m- #         )[m
+[31m- #         self._write_output(str(vr))[m
+[31m- [m
+[31m- #     def _run_sign_detached(self) -> None:[m
+[31m- #         message = self._get_input_bytes()[m
+[31m- #         if message is None:[m
+[31m- #             return[m
+[31m- #         sign_fp = self._get_single_signing_key()[m
+[31m- #         if sign_fp is None:[m
+[31m- #             return[m
+[31m- #         self._log.log_separator("Detached Sign")[m
+[31m- #         self._pending_message = message[m
+[31m- #         self._sign_fp = sign_fp[m
+[31m- #         self.app.push_screen([m
+[31m- #             PassphraseModal(title=f"Passphrase for signing key <{sign_fp[-16:]}>"),[m
+[31m- #             callback=self._on_detached_pass[m
+[31m- #         )[m
+[31m- [m
+[31m- #     def _on_detached_pass(self, result: PassphraseResult) -> None:[m
+[31m- #         sign_fp = getattr(self, "_sign_fp", None)[m
+[31m- #         message = getattr(self, "_pending_message", None)[m
+[31m- #         if sign_fp is None:[m
+[31m- #             return[m
+[31m- #         if message is None:[m
+[31m- #             return[m
+[31m- #         self._sign_fp = None[m
+[31m- #         self._pending_message = None[m
+[31m- #         if result.cancelled:[m
+[31m- #             self._log.log([m
+[31m- #                 "Detached sign cancelled.",[m
+[31m- #                 level="INFO"[m
+[31m- #             )[m
+[31m- #             return[m
+[31m- #         if result.was_empty:[m
+[31m- #             self._log.log([m
+[31m- #                 "Empty passphrase - assuming signing key has no passphrase.",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_sign_detached(message, sign_fp, result.passphrase),[m
+[31m- #             thread=True,[m
+[31m- #             name="sign_detached"[m
+[31m- #         )[m
+[31m-     [m
+[31m- #     async def _worker_sign_detached([m
+[31m- #         self,[m
+[31m- #         message: bytes,[m
+[31m- #         sign_fp: str,[m
+[31m- #         passphrase: str | None[m
+[31m- #     ) -> None:[m
+[31m- #         result = await asyncio.to_thread([m
+[31m- #             sign_detached,[m
+[31m- #             self.gpg,[m
+[31m- #             message,[m
+[31m- #             sign_fp,[m
+[31m- #             passphrase=passphrase,[m
+[31m- #             armor=True[m
+[31m- #         )[m
+[31m- #         self.app.call_from_thread(self._finish_sign_detached, result)[m
+[31m- [m
+[31m- #     def _finish_sign_detached(self, result: str | bytes | None) -> None:[m
+[31m- #         ok = result is not None[m
+[31m- #         self._log.log_result(ok=ok, label="sign_detached")[m
+[31m- #         self._write_output(result)[m
+[31m- [m
+[31m- #     def _run_verify_detached(self) -> None:[m
+[31m- #         message = self._get_input_bytes()[m
+[31m- #         if message is None:[m
+[31m- #             return[m
+[31m- #         sig_text = self.query_one("#ed-sig-label", TextArea).text.strip()[m
+[31m- #         if not sig_text:[m
+[31m- #             self._log.log([m
+[31m- #                 "Paste the detached signature (.asc) in the signature field.",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #             return[m
+[31m- #         self._log.log_separator("Verify Detached")[m
+[31m- #         self.run_worker([m
+[31m- #             self._worker_verify_detached(message, sig_text),[m
+[31m- #             thread=True,[m
+[31m- #             name="verify_detached"[m
+[31m- #         )[m
+[31m- [m
+[31m- #     async def _worker_verify_detached([m
+[31m- #         self,[m
+[31m- #         message: bytes,[m
+[31m- #         signature: str[m
+[31m- #     ) -> None:[m
+[31m- #         vr = await asyncio.to_thread([m
+[31m- #             verify_detached,[m
+[31m- #             self.gpg,[m
+[31m- #             message,[m
+[31m- #             signature[m
+[31m- #         )[m
+[31m- #         self.app.call_from_thread(self._finish_verify_detached, vr)[m
+[31m- [m
+[31m- #     def _finish_verify_detached(self, vr) -> None:[m
+[31m- #         self._log.log_result([m
+[31m- #             ok=vr.valid,[m
+[31m- #             label="verify_detached",[m
+[31m- #             detail=str(vr) if vr.valid else f"status: {vr.status}"[m
+[31m- #         )[m
+[31m- #         self._write_output(str(vr))[m
+[31m- [m
+[31m- #     def action_copy_output(self) -> None:[m
+[31m- #         """Copy the output TextArea content to the clipboard."""[m
+[31m- #         text = self._output.text.strip()[m
+[31m- #         if not text:[m
+[31m- #             self._log.log("Output is empty - nothing to copy.", level="WARN")[m
+[31m- #             return[m
+[31m- #         try:[m
+[31m- #             import pyperclip[m
+[31m- #             pyperclip.copy(text)[m
+[31m- #             self._log.log("Output copied to clipboard.", level="OK")[m
+[31m- #         except ImportError:[m
+[31m- #             self._log.log([m
+[31m- #                 "pyperclip not installed. `pip install pyperclip` to enable.",[m
+[31m- #                 level="WARN"[m
+[31m- #             )[m
+[31m- #         except Exception as exc:[m
+[31m- #             self._log.log(f"Clipboard error: {exc}", level="ERR")[m
+[31m- [m
+[31m- #     def action_save_log(self) -> None:[m
+[31m- #         self._log.save()[m
+[31m- [m
+[31m- #     def action_cycle_focus(self) -> None:[m
+[31m- #         """Tab - cycle: input area -> key list -> output area -> back."""[m
+[31m- #         focused = self.focused[m
+[31m- #         fid = getattr(focused, "id", None)[m
+[31m- #         if fid in ("ed-input-text", "ed-input-file"):[m
+[31m- #             self._key_list.focus()[m
+[31m- #         elif fid == "ed-key-list":[m
+[31m- #             self._output.focus()[m
+[31m- #         else:[m
+[31m- #             if self._input_mode == "text":[m
+[31m- #                 self.query_one("#ed-input-text", TextArea).focus()[m
+[31m- #             else:[m
+[31m- #                 self.query_one("#ed-input-file", Input).focus()[m
+[31m-     [m
+[31m- #     def action_go_home(self) -> None:[m
+[31m- #         self.app.pop_screen()[m
+[31m- #         # installed = getattr(self.app, "_installed_screens", {})[m
+[31m- #         # if "home" in installed:[m
+[31m- #         #     self.app.switch_screen("home")[m
+[31m- #         # else:[m
+[31m- #         #     self.app.pop_screen()[m
+[31m-         [m
+[31m- #     @property[m
+[31m- #     def _log(self) -> OperationLogWidget:[m
+[31m- #         return self.query_one("#ed-op-log", OperationLogWidget)[m
+[31m-     [m
+[31m- #     @property[m
+[31m- #     def _key_list(self) -> KeyListWidget:[m
+[31m- #         return self.query_one("#ed-key-list", KeyListWidget)[m
+[31m-     [m
+[31m- #     @property[m
+[31m- #     def _output(self) -> TextArea:[m
+[31m- #         return self.query_one("#ed-output", TextArea)[m
+[31m- [m
+[31m- [m
+--- 895,897 ----

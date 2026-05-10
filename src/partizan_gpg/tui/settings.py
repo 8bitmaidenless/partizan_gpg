@@ -38,6 +38,7 @@ _DEFAULT_GPG_BINARY: str = "gpg"
 _DEFAULT_ALGORITHM: str = "rsa"
 _DEFAULT_EXPIRE: str = "2y"
 _DEFAULT_KEYSERVER_URL: str = "https://keys.openpgp.org"
+_DEFAULT_PASSPHRASE_CACHE: bool = False
 
 
 @dataclass
@@ -47,6 +48,7 @@ class AppSettings:
     algorithm: str = field(default=_DEFAULT_ALGORITHM)
     expire: str = field(default=_DEFAULT_EXPIRE)
     keyserver_url: str = field(default=_DEFAULT_KEYSERVER_URL)
+    passphrase_cache_enabled: bool = field(default=_DEFAULT_PASSPHRASE_CACHE)
 
     def gnupghome_path(self) -> Path | None:
         """
@@ -130,6 +132,9 @@ def load_settings() -> AppSettings:
         algorithm=raw.get("algorithm", _DEFAULT_ALGORITHM),
         expire=raw.get("expire", _DEFAULT_EXPIRE),
         keyserver_url=raw.get("keyserver_url", _DEFAULT_KEYSERVER_URL),
+        passphrase_cache_enabled=bool(
+            raw.get("passphrase_cache_enabled", _DEFAULT_PASSPHRASE_CACHE)
+        )
     )
 
 

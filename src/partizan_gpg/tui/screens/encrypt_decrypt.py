@@ -410,7 +410,7 @@ class EncryptDecryptScreen(Screen):
                 return None
             path = Path(path_str)
             if not path.exists():
-                self._log.log(f"File not found: {path}", level="ERR")
+                self._log.lof(f"File not found: {path}", level="ERR")
                 return None
             try:
                 return path.read_bytes()
@@ -462,24 +462,13 @@ class EncryptDecryptScreen(Screen):
                 path_str = str(p)
             path = Path(path_str)
             if isinstance(data, str):
-                try:
-                    bit = data.encode("utf-8")
-                    suf = ".gpg"
-                    method = "write_bytes"
-                except UnicodeEncodeError:
-                    path = path.with_suffix(".asc")
-                    bit = data
-                    method = "write_text"
-                    text = (
-                        f"<output - {len(data)} chars>\n"
-                        "(Use armor output mode to check output, cannot encode)"
-                    )
-                    out.load_text(text)
-            else:
+                bit = data.encode("utf-8")
                 suf = ".gpg"
                 method = "write_bytes"
+            else:
                 bit = data
-                # path.write_bytes(data)
+                suf = ".gpg"
+                method = "write_bytes"
             path = path.with_suffix(suf)
             write_method = getattr(path, method, path.write_bytes)
             write_method(bit)
@@ -520,16 +509,41 @@ class EncryptDecryptScreen(Screen):
                     "move the cursor to a different key if this is unintentional.",
                     level="WARN"
                 )
-
+            
             self._log.log_separator(
-                f"Encrypt+Sign → {len(recipients)} recipient(s)  "
-                f"[signer: {signer_info.key_id}]"
+                f"Encrypt+Sign -> {len(recipients)} recipient(s) "
+                f"[signer: {signer_info.key_id}]",
             )
+
+            cached = self._get_cached(signer_info.fingerprint)
+            if cached is not None:
+                self._log_cache_hit(signer_info.key_id)
+                self._pending = {
+                    "plaintext": plaintext,
+                    "recipients": recipients,
+                    "armor": armor,
+                    "sign_fp": signer_info.fingerprint,
+                    "passphrase": cached,
+                    "cached": True,
+                }
+                self.run_worker(
+                    self._worker_encrypt_recipients(
+                        plaintext,
+                        recipients,
+                        armor,
+                        sign_fp=signer_info.fingerprint,
+                        passphrase=cached
+                    ),
+                    thread=True,
+                    name="encrypt_recipients"
+                )
+                return
+            
             self._pending = {
                 "plaintext": plaintext,
                 "recipients": recipients,
                 "armor": armor,
-                "sign_fp": signer_info.fingerprint,
+                "sign_fp": signer_info.fingerprint
             }
             self.app.push_screen(
                 PassphraseModal(
@@ -539,7 +553,7 @@ class EncryptDecryptScreen(Screen):
                 callback=self._on_encrypt_sign_pass
             )
         else:
-            self._log.log_separator(f"Encrypt → {len(recipients)} recipient(s)")
+            self._log.log_separator(f"Encrypt -> {len(recipients)} recipient(s)")
             self.run_worker(
                 self._worker_encrypt_recipients(
                     plaintext,
@@ -551,6 +565,19 @@ class EncryptDecryptScreen(Screen):
                 thread=True,
                 name="encrypt_recipients"
             )
+
+
+    def _get_cached(self, fingerprint: str) -> str | None:
+        return self.app.get_cached_passphrase(fingerprint)
+    
+    def _store_cached(self, fingerprint: str, passphrase: str | None) -> None:
+        self.app.cache_passphrase(fingerprint, passphrase)
+
+    def _evict_cached(self, fingerprint: str) -> None:
+        self.app.evict_passphrase(fingerprint)
+
+    def _log_cache_hit(self, key_id: str) -> None:
+        self._log.log(f"Using cached passphrase for {key_id}.", level="INFO")
     
     def _on_encrypt_sign_pass(self, result: PassphraseResult) -> None:
         pending = self._pending
@@ -564,7 +591,7 @@ class EncryptDecryptScreen(Screen):
                 "Empty passphrase - assuming signing key has no passphrase.",
                 level="WARN"
             )
-
+        self._store_cached(pending["sign_fp"], result.passphrase)
         self.run_worker(
             self._worker_encrypt_recipients(
                 pending["plaintext"],
@@ -595,14 +622,21 @@ class EncryptDecryptScreen(Screen):
             passphrase=passphrase,
             always_trust=True
         )
-        self.app.call_from_thread(self._finish_encrypt_recipients, result, armor)
+        self.app.call_from_thread(self._finish_encrypt_recipients, result, armor, sign_fp)
 
     def _finish_encrypt_recipients(
         self,
         result: str | bytes | None,
-        armor: bool
+        armor: bool,
+        sign_fp: str | None
     ) -> None:
         ok = result is not None
+        if not ok and sign_fp and self._get_cached(sign_fp):
+            self._evict_cached(sign_fp)
+            self._log.log(
+                "Cached passphrase may be wrong - evicted. You will be prompted again.",
+                level="WARN"
+            )
         self._log.log_result(
             ok=ok,
             label="encrypt_to_recipients",
@@ -738,6 +772,21 @@ class EncryptDecryptScreen(Screen):
             return
         
         self._log.log_separator(f"Clearsign  [signer: {signer_info.key_id}]")
+
+        cached = self._get_cached(signer_info.fingerprint)
+        if cached is not None:
+            self._log_cache_hit(signer_info.key_id)
+            self._pending = {
+                "message": message,
+                "sign_fp": signer_info.fingerprint,
+            }
+            self.run_worker(
+                self._worker_clearsign(message, signer_info.fingerprint, cached),
+                thread=True,
+                name="clearsign"
+            )
+            return
+        
         self._pending = {
             "message": message,
             "sign_fp": signer_info.fingerprint
@@ -785,9 +834,15 @@ class EncryptDecryptScreen(Screen):
             sign_fp,
             passphrase=passphrase
         )
-        self.app.call_from_thread(self._finish_clearsign, result)
+        self.app.call_from_thread(self._finish_clearsign, result, sign_fp)
 
-    def _finish_clearsign(self, result: str | None) -> None:
+    def _finish_clearsign(self, result: str | None, sign_fp: str) -> None:
+        if result is None and self._get_cached(sign_fp):
+            self._evict_cached(sign_fp)
+            self._log.log(
+                "Cached passphrase may be wrong - evicted.",
+                level="WARN"
+            )
         self._log.log_result(ok=result is not None, label="clearsign")
         self._write_output(result)
 
@@ -834,10 +889,24 @@ class EncryptDecryptScreen(Screen):
             return
         
         self._log.log_separator(f"Detached Sign  [signer: {signer_info.key_id}]")
-        self._pending = {
-            "message": message,
-            "sign_fp": signer_info.fingerprint,
-        }
+        # self._pending = {
+        #     "message": message,
+        #     "sign_fp": signer_info.fingerprint,
+        # }
+        cached = self._get_cached(signer_info.fingerprint)
+        if cached is not None:
+            self._log_cache_hit(signer_info.fingerprint)
+            self._pending = {
+                "message": message,
+                "sign_fp": signer_info.fingerprint,
+            }
+            self.run_worker(
+                self._worker_sign_detached(message, signer_info.fingerprint, cached),
+                thread=True,
+                name="sign_detached"
+            )
+            return
+        self._pending = {"message": message, "sign_fp": signer_info.fingerprint}
         self.app.push_screen(
             PassphraseModal(
                 title=f"Passphrase for: {signer_info.name} <{signer_info.key_id}>"
@@ -884,7 +953,17 @@ class EncryptDecryptScreen(Screen):
         )
         self.app.call_from_thread(self._finish_sign_detached, result)
 
-    def _finish_sign_detached(self, result: str | bytes | None) -> None:
+    def _finish_sign_detached(
+        self,
+        result: str | bytes | None,
+        sign_fp: str
+    ) -> None:
+        if result is None and self._get_cached(sign_fp):
+            self._evict_cached(sign_fp)
+            self._log.log(
+                "Cached passphrase may be wrong - evicted.",
+                level="WARN"
+            )
         self._log.log_result(ok=result is not None, label="sign_detached")
         self._write_output(result)
 

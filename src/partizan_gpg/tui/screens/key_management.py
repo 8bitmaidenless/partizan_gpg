@@ -341,10 +341,20 @@ class KeyManagementScreen(Screen):
         self._log.log_separator(
             f"Export secret key: {event.name} <{event.key_id}>"
         )
+        
         self._log.log(
             "⏶ Exporting a secret key.  Keep the output file secure.",
             level="WARN"
         )
+
+        cached = self._get_cached(event.fingerprint)
+        if cached is not None:
+            self._log.log(f"Using cached passphrase for {event.key_id}.", level="INFO")
+            fp = self._pending_secret_export_fp
+            self._pending_secret_export_fp = None
+            self._key_detail.do_export_secret(fingerprint=fp, passphrase=cached)
+            return
+        
         self.app.push_screen(
             PassphraseModal(
                 title=f"Passphrase for secret key: {event.name} <{event.key_id}>"
@@ -365,10 +375,23 @@ class KeyManagementScreen(Screen):
                 level="WARN"
             )
 
+        self._store_cached(fp, result.passphrase)
         self._key_detail.do_export_secret(
             fingerprint=fp,
             passphrase=result.passphrase
         )
+
+    def _get_cached(self, fingerprint: str) -> str | None:
+        return self.app.get_cached_passphrase(fingerprint)
+    
+    def _store_cached(self, fingerprint: str, passphrase: str | None) -> None:
+        self.app.cache_passphrase(fingerprint, passphrase)
+
+    def _evict_cached(self, fingerprint: str) -> None:
+        self.app.evict_passphrase(fingerprint)
+
+    def _log_cache_hit(self, key_id: str) -> None:
+        self._log.log(f"Using cached passphrase for {key_id}.", level="INFO")
 
     def action_generate_key(self) -> None:
         from partizan_gpg.tui.settings import load_settings
