@@ -12,20 +12,22 @@ def get_base_path():
 
 
 def get_gpg_binary():
-    base = get_base_path()
-    
     system = platform.system()
+
+    if system == "Darwin":
+        from partizan_gpg.cipherlib.macos_shim import activate, bundled_gpg_binary
+        activate()
+        bundled = bundled_gpg_binary()
+        if bundled and bundled.exists():
+            return bundled
+        return Path("gpg")
+    
+    base = get_base_path()
 
     if system == "Windows":
         return base / "bundled" / "windows" / "gnupg" / "bin" / "gpg.exe"
     
-    elif system == "Linux":
+    if system == "Linux":
         return base / "bundled" / "linux" / "gpg"
-    
-    elif system == "Darwin":
-        binary = base / "bundled" / "macos" / "gpg"
-        if binary.exists():
-            return binary
-        return Path("gpg")
     
     raise RuntimeError(f"Unsupported OS: {system}")
